@@ -16,7 +16,6 @@ class Spike:
     def hit(self, worm):
         self.strength = self.strength - worm.get_power()
         self.power = self.power - math.sqrt(worm.get_power())
-        worm.set_life(worm.get_life() - self.strength)
 
     # Возвращает прочность колючки
     def get_strength(self):

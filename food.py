@@ -29,6 +29,14 @@ class Food:
     def set_saturation(self, saturation):
         self.saturation = saturation
 
+    # Уменьшает сытость на заданную величину
+    # delta - величина, на которую мы меняем сытость
+    def change_saturation(self, delta):
+        self.saturation = self.saturation - delta
+
+        if self.saturation <= 0:
+            self.saturation = 0
+
     # Уменьшает время на заданную величину
     # delta - величина, на которую мы меняем время
     def tik(self, period):
