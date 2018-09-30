@@ -29,7 +29,6 @@ class Thread:
         for worm in enumerate(self.__worms_list):
             if worm[1].get_id() == id:
                 del self.__worms_list[worm[0]]
-        return None
 
     # Удаляет еду по id
     # id - индификатор еды
@@ -37,7 +36,6 @@ class Thread:
         for food in enumerate(self.__foods_list):
             if food[1].get_id() == id:
                 del self.__spikes_list[food[0]]
-        return None
 
     # Удаляет колючку по id
     # id - индификатор колючки
@@ -45,7 +43,6 @@ class Thread:
         for spike in enumerate(self.__spikes_list):
             if spike[1].get_id() == id:
                 del self.__spikes_list[spike[0]]
-        return None
 
     # Возвращает червя по id
     def get_worm(self, id):
