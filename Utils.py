@@ -25,11 +25,13 @@ cmd_params = {
     'spike-init-num=' : 'Initial number of spikes',
     'world-width=' : 'Width of the world',
     'world-height=' : 'Height of the world',
-    'learning=' : 'Learning',
+    'learning' : 'Learning',
     'world-lifespan=' : 'Lifespan of the world',
     'spike-lifespan=' : 'Lifespan of spike',
     'food-lifespan=' : 'Lifespan of food',
-    'worm-lifespan=' : 'Lifespan of the worm'}
+    'worm-lifespan=' : 'Lifespan of the worm',
+    'visual-width-scale=' : 'Scale of visual width',
+    'visual-height-scale=' : 'Scale of visual height'}
 
 cmd_to_thread = {
     'worms-init-num' : 'worms_init_number',
@@ -41,7 +43,9 @@ cmd_to_thread = {
     'world-lifespan' : 'world_lifespan',
     'spike-lifespan' : 'spike_lifespan',
     'food-lifespan' : 'food_lifespan',
-    'worm-lifespan' : 'worm_lifespan'}
+    'worm-lifespan' : 'worm_lifespan',
+    'visual-width-scale' : 'visual_width_scale',
+    'visual-height-scale' : 'visual_height_scale'}
 
 thread_params = {
     'worms_init_number' : 1,
@@ -53,4 +57,7 @@ thread_params = {
     'world_lifespan' : 10000,
     'spike_lifespan' : 10,
     'food_lifespan' : 10,
-    'worm_lifespan' : 100}
+    'worm_lifespan' : 100,
+    'visual_width_scale' : 2,
+    'visual_height_scale' : 2,
+    'visual_draw_color' : (0, 255, 0)}

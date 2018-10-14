@@ -12,6 +12,8 @@ from Colony import *
 
 from Utils import *
 
+from Visual import *
+
 class Thread:
     def __init__(self, params):
         self.params = params
@@ -21,6 +23,14 @@ class Thread:
         self.environment = Environment(env_max_times)
         
         self.colony = Colony(params['worm_lifespan'])
+        
+        visual_params = {
+            'world_width' : self.params['world_width'],
+            'world_height' : self.params['world_height'],
+            'width_scale' : self.params['visual_width_scale'],
+            'height_scale' : self.params['visual_height_scale'],
+            'draw_color' : self.params['visual_draw_color']}
+        self.visual = Visual(visual_params)
     
     def _generate_init_worms(self):
         worms_params_x = npr.randint(0, self.params['world_width'], self.params['worms_init_number'])
@@ -210,6 +220,8 @@ class Thread:
     def _run(self):
         while(self._is_alive()):
             self._tick()
+            self.visual.clear()
+            self.visual.show_positions(self.colony, self.environment)
             self.world_view = self._render_world()
             for worm in self.colony:
                 worm_position = list(worm.get_position())

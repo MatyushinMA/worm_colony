@@ -3,10 +3,26 @@ from Food import Food
 
 class Environment:
     def __init__(self, max_times):
+        self._iter = 0
         self.ids = {'spike' : 0, 'food' : 0}
         self.counts = {'spike' : 0, 'food' : 0}
         self.lists = {'spike' : [], 'food' : []}
         self.max_times = max_times
+
+    def __iter__(self):
+        self._iter = 0
+        return self
+    
+    def next(self):
+        if self._iter >= self.counts['spike'] + self.counts['food']:
+            raise StopIteration
+        ret = None
+        if self._iter < self.counts['spike']:
+            ret = self.lists['spike'][self._iter]
+        else:
+            ret = self.lists['food'][self._iter - self.counts['spike']]
+        self._iter += 1
+        return ret
     
     def _add_cust(self, new_element, ident):
         max_id = new_element.get_id()
@@ -39,6 +55,7 @@ class Environment:
         for i, element in enumerate(self.lists[ident]):
             if element.get_id() == id:
                 self.lists[ident].pop(i)
+                self.counts[ident] -= 1
                 return True
         return False
     
