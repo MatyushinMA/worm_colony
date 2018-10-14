@@ -1,8 +1,9 @@
 # Worm colony
 ### Stages:
 
-* Make prototypes
-* Load net
-* Raw test
-* Create interaction
+* ~~Make prototypes~~
+* ~~Raw test~~
+* ~~Create interaction~~
+* Fix bugs
+* Make it learnable
 * Release
