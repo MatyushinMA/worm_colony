@@ -1,20 +1,26 @@
-import Nnet
+from Nnet import WormNET
+import torch
 
 class Worm:
-    def __init__(self, id, x, y):
+    def __init__(self, id, x, y, orientation=0):
         self.id = id
         self.health = 100
         self.time = 0
         self.power = 1
         self.saturation = 100
+        self.orient = orientation
         
         self.net = WormNET()
         self.x = x
         self.y = y
     
-    def next_action(self, env):
+    def __call__(self, env):
         self.time += 1
-        pred = self.net(env)
+        feed_env = torch.from_numpy(env)
+        feed_env = feed_env.permute(2, 0, 1)
+        feed_env = feed_env.view(1, 3, 11, 12)
+        feed_env = feed_env.float()
+        pred = self.net(feed_env)
         return pred
     
     def get_id(self):
@@ -45,8 +51,9 @@ class Worm:
         self.time += 1
 
     def get_position(self):
-        return (self.x_coordinate, self.y_coordinate)
+        return (self.x, self.y, self.orient)
     
-    def set_position(self, x, y):
-        self.x_coordinate = x
-        self.y_coordinate = y
+    def set_position(self, x, y, orientation):
+        self.x = x
+        self.y = y
+        self.orient = orientation

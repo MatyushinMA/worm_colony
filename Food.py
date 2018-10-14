@@ -1,3 +1,5 @@
+from Utils import FOOD_RESTORATION
+
 class Food:
     def __init__(self, id, x, y, saturation=100):
         self.__id = id
@@ -9,11 +11,14 @@ class Food:
     def tick(self):
         self.__time += 1
     
-    def change_saturation(self, delta):
-        self.__saturation = self.__saturation - delta
+    def eat(self):
+        restore = FOOD_RESTORATION
+        self.__saturation -= FOOD_RESTORATION
 
         if self.__saturation <= 0:
+            restore += self.__saturation
             self.__saturation = 0
+        return restore
     
     def set_saturation(self, saturation):
         self.__saturation = saturation

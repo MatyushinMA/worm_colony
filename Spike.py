@@ -1,8 +1,10 @@
+from Utils import SPIKE_DAMAGE
+
 class Spike:
-    def __init__(self, id, x, y, strength=100, power=100):
+    def __init__(self, id, x, y, strength=100):
         self.__id = id
         self.__strength = strength
-        self.__power = power
+        self.__power = SPIKE_DAMAGE
         self.__time = 0
         self.__x = x
         self.__y = y
@@ -10,17 +12,12 @@ class Spike:
     def tick(self):
         self.__time += 1
     
-    def reduce_strenght(self, delta):
-        self.__strength -= delta
+    def hit(self):
+        self.__strength -= SPIKE_DAMAGE
 
         if self.__strength < 0:
             self.__strength = 0
-    
-    def change_power(self, delta):
-        self.__power = self.__power + delta
-
-        if self.__power < 0:
-            self.__power = 0
+        return self.__power
     
     def set_strenght(self, strenght):
         self.__strength = strenght
@@ -29,7 +26,7 @@ class Spike:
         self.__power = power
     
     def get_time(self):
-        return self.get_time()
+        return self.__time
     
     def get_id(self):
         return self.__id
