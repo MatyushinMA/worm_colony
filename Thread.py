@@ -29,7 +29,9 @@ class Thread:
             'world_height' : self.params['world_height'],
             'width_scale' : self.params['visual_width_scale'],
             'height_scale' : self.params['visual_height_scale'],
-            'draw_color' : self.params['visual_draw_color']}
+            'worm_draw_color' : self.params['visual_worm_draw_color'],
+            'spike_draw_color' : self.params['visual_spike_draw_color'],
+            'food_draw_color' : self.params['visual_food_draw_color']}
         self.visual = Visual(visual_params)
     
     def _generate_init_worms(self):
@@ -125,14 +127,14 @@ class Thread:
         if turn > EPS: # turn left
             position[2] -= 1
             position[2] %= 4
-        elif turn < EPS: # turn right
+        elif turn < -EPS: # turn right
             position[2] += 1
             position[2] %= 4
         move_value = 0
         if move > EPS: # move forward
-            move_value = 1
-        elif move < EPS: # move backward
-            move_value = -1
+            move_value = self.params['worm_speed']
+        elif move < -EPS: # move backward
+            move_value = -self.params['worm_speed']
         # actual moving
         if position[2] == ORIENTATIONS['top']:
             position[1] -= move_value
@@ -225,7 +227,7 @@ class Thread:
             self.world_view = self._render_world()
             for worm in self.colony:
                 worm_position = list(worm.get_position())
-                print("Worm %d, position (%d, %d)" % (worm.get_id(), worm_position[0], worm_position[1]))
+                print("Worm %d, position (%d, %d), health %d" % (worm.get_id(), worm_position[0], worm_position[1], worm.get_health()))
                 vb = self._get_worm_view(worm_position)
                 # TODO: view through the edge
                 worm_view = self.world_view[vb['x1'] : vb['x2'], vb['y1'] : vb['y2'], :].copy()

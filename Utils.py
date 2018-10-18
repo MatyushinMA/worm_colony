@@ -13,7 +13,7 @@ SPAWN_TIMES = {
     'spike' : 50,
     'food' : 50,
     'worm' : 10000}
-EPS = 0.15
+EPS = 0.0
 FOOD_RESTORATION = 10
 SPIKE_DAMAGE = 10
 WORM_DAMAGE = 5
@@ -30,6 +30,7 @@ cmd_params = {
     'spike-lifespan=' : 'Lifespan of spike',
     'food-lifespan=' : 'Lifespan of food',
     'worm-lifespan=' : 'Lifespan of the worm',
+    'worm-spid=' : 'Speed of worm',
     'visual-width-scale=' : 'Scale of visual width',
     'visual-height-scale=' : 'Scale of visual height'}
 
@@ -44,6 +45,7 @@ cmd_to_thread = {
     'spike-lifespan' : 'spike_lifespan',
     'food-lifespan' : 'food_lifespan',
     'worm-lifespan' : 'worm_lifespan',
+    'worm-speed' : 'worm_speed',
     'visual-width-scale' : 'visual_width_scale',
     'visual-height-scale' : 'visual_height_scale'}
 
@@ -55,9 +57,12 @@ thread_params = {
     'world_height' : 100,
     'learning' : False,
     'world_lifespan' : 10000,
-    'spike_lifespan' : 10,
-    'food_lifespan' : 10,
+    'spike_lifespan' : 100,
+    'food_lifespan' : 100,
     'worm_lifespan' : 100,
+    'worm_speed' : 5,
     'visual_width_scale' : 2,
     'visual_height_scale' : 2,
-    'visual_draw_color' : (0, 255, 0)}
+    'visual_worm_draw_color' : (255, 0, 0),
+    'visual_spike_draw_color' : (0, 0, 255),
+    'visual_food_draw_color' : (0, 255, 0)}
