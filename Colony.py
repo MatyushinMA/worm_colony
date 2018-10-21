@@ -14,7 +14,7 @@ class Colony:
         self._iter = 0
         return self
     
-    def next(self):
+    def __next__(self):
         if self._iter >= self.act_worms:
             raise StopIteration
         w = self.worms[self._iter]

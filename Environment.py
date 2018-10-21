@@ -13,7 +13,7 @@ class Environment:
         self._iter = 0
         return self
     
-    def next(self):
+    def __next__(self):
         if self._iter >= self.counts['spike'] + self.counts['food']:
             raise StopIteration
         ret = None

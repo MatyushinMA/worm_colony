@@ -1,5 +1,6 @@
 import sys, getopt
 import numpy as np
+import math
 import numpy.random as npr
 from time import sleep
 
@@ -114,6 +115,19 @@ class Thread:
             vb['y2'] += VIEW['right'] + 1
         else:
             return None
+
+        self.view_width = int(math.fabs(vb['x1'] - vb['x2']))
+        self.view_height = int(math.fabs(vb['y1'] - vb['y2']))
+
+        vb['x1'] %= self.params['world_width']
+        vb['x2'] %= self.params['world_width']
+        vb['x3'] = vb['x1']
+        vb['x4'] = vb['x2']
+        vb['y1'] %= self.params['world_height']
+        vb['y2'] %= self.params['world_height']
+        vb['y3'] = vb['y2']
+        vb['y4'] = vb['y1']
+
         return vb
     
     def _rotate_worm_view(self, worm_view, orientation):
@@ -144,10 +158,12 @@ class Thread:
             position[1] %= self.params['world_height']
         elif position[2] == ORIENTATIONS['left']:
             position[0] -= move_value
-            position[1] %= self.params['world_width']
+            position[0] %= self.params['world_width']
         elif position[2] == ORIENTATIONS['right']:
             position[0] += move_value
-            position[1] %= self.params['world_width']
+            position[0] %= self.params['world_width']
+
+        print(position)
         return position
     
     def _colony_interaction(self, worm, attack):
@@ -177,7 +193,7 @@ class Thread:
             if attack > EPS: # if worm decided to attack
                 int_food.eat() # food gets double hit
         
-    def _spike_interaction(self, worm, attach):
+    def _spike_interaction(self, worm, attack):
         worm_position = worm.get_position()
         worm_x, worm_y = worm_position[0], worm_position[1]
         int_spike = None
@@ -199,25 +215,60 @@ class Thread:
         if self.params['tick'] % SPAWN_TIMES['spike'] == 0:
             x_pos = npr.randint(0, self.params['world_width'])
             y_pos = npr.randint(0, self.params['world_height'])
-            self.environment.emplace_spike(x, y)
+            self.environment.emplace_spike(x_pos, y_pos)
     
     def _spawn_food(self):
         if self.params['tick'] % SPAWN_TIMES['food'] == 0:
             x_pos = npr.randint(0, self.params['world_width'])
             y_pos = npr.randint(0, self.params['world_height'])
-            self.environment.emplace_food(x, y)
+            self.environment.emplace_food(x_pos, y_pos)
     
     def _spawn_worm(self):
         if self.params['tick'] % SPAWN_TIMES['worm'] == 0:
             x_pos = npr.randint(0, self.params['world_width'])
             y_pos = npr.randint(0, self.params['world_height'])
             orient = npr.randint(0, 4)
-            self.colony.emplace_worm(x, y, orient)
+            self.colony.emplace_worm(x_pos, y_pos, orient)
     
     def _spawn(self):
         self._spawn_spike()
         self._spawn_food()
         self._spawn_worm()
+
+    def __fill_worm_view(self, vb):
+
+        final_world_view = np.zeros((self.view_width, self.view_height, 3))
+
+        if vb['x1'] < vb['x2']:
+            if vb['y1'] < vb['y2']:
+                final_world_view = self.world_view[vb['x1']:vb['x2'], vb['y1']:vb['y2'], :].copy()
+            else:
+                final_world_view[0:self.view_width, 0:self.params['world_height']-vb['y1'], :]\
+                    = self.world_view[vb['x1']:vb['x4'],vb['y1']:self.params['world_height'], :].copy()
+
+                final_world_view[0:self.view_width, self.params['world_height']-vb['y1']:self.view_height, :]\
+                    = self.world_view[vb['x3']:vb['x4'], 0:vb['y3'], :].copy()
+        else:
+            if vb['y1'] < vb['y2']:
+                final_world_view[0:self.params['world_width']-vb['x1'], 0:self.view_height, :] \
+                    = self.world_view[vb['x1']:self.params['world_width'], vb['y1']:vb['y3'], :].copy()
+
+                final_world_view[self.params['world_width']-vb['x1']:self.view_width, 0:self.view_height, :] \
+                    = self.world_view[0:vb['x2'], vb['y4']:vb['y2'], :].copy()
+            else:
+                final_world_view[self.view_width-vb['x2']:self.view_width, self.view_height-vb['y2']:self.view_height, :] \
+                    = self.world_view[0:vb['x2'], 0:vb['y2'], :].copy()
+
+                final_world_view[0:self.view_width-vb['x2'], self.view_height-vb['y2']:self.view_height, :] \
+                    = self.world_view[vb['x3']:self.params['world_width'], 0:vb['y3'], :].copy()
+
+                final_world_view[self.view_width-vb['x2']:self.view_width, 0:self.view_height-vb['y2'], :] \
+                    = self.world_view[0:vb['x4'], vb['y4']:self.params['world_height'], :].copy()
+
+                final_world_view[0:self.view_width-vb['x2'], 0:self.view_height-vb['y2'], :] \
+                    = self.world_view[vb['x1']:self.params['world_width'], vb['y1']:self.params['world_height'], :].copy()
+
+        return final_world_view
     
     def _run(self):
         while(self._is_alive()):
@@ -230,7 +281,8 @@ class Thread:
                 print("Worm %d, position (%d, %d), health %d" % (worm.get_id(), worm_position[0], worm_position[1], worm.get_health()))
                 vb = self._get_worm_view(worm_position)
                 # TODO: view through the edge
-                worm_view = self.world_view[vb['x1'] : vb['x2'], vb['y1'] : vb['y2'], :].copy()
+                worm_view = self.__fill_worm_view(vb)
+                # worm_view = self.world_view[vb['x1'] : vb['x2'], vb['y1'] : vb['y2'], :].copy()
                 self._rotate_worm_view(worm_view, worm_position[2])
                 action = worm(worm_view) # feed worm view to worm
                 attack = action[2]
