@@ -33,12 +33,26 @@ class Colony:
                 return True
         return False
 
+    def tail_position(self, x, y, orient):
+        if orient == ORIENTATIONS['top']:
+            return (x, y-WORM_LENGTH+1)
+        if orient == ORIENTATIONS['right']:
+            return (x-WORM_LENGTH+1, y)
+        if orient == ORIENTATIONS['bottom']:
+            return (x, y+WORM_LENGTH-1)
+        if orient == ORIENTATIONS['left']:
+            return (x+WORM_LENGTH-1, y)
+        return (x, y)
+    
     def get_worm_by_position(self, x, y):
-        # TODO: Get worm by tail too
+        # TODO: Get worm by tail too == IS READY
         for w in self.worms:
             worm_position = w.get_position()
             if worm_position[0] == x and worm_position[1] == y:
                 return w
+            (x_tail, y_tail)= self.tail_position(worm_position[0], worm_position[1], worm_position[2])
+            if x_tail == x and y_tail == y:
+                return w;
         return None
 
     def interception(self, x, y):
