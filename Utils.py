@@ -17,7 +17,7 @@ EPS = 0.0
 FOOD_RESTORATION = 10
 SPIKE_DAMAGE = 10
 WORM_DAMAGE = 5
-RENDER_DELAY = 1000 # ms
+RENDER_DELAY = 50 # ms
 
 cmd_params = {
     'worms-init-num=' : 'Initial number of worms',
@@ -30,9 +30,13 @@ cmd_params = {
     'spike-lifespan=' : 'Lifespan of spike',
     'food-lifespan=' : 'Lifespan of food',
     'worm-lifespan=' : 'Lifespan of the worm',
-    'worm-spid=' : 'Speed of worm',
+    'worm-speed=' : 'Speed of worm',
+    'worm-adequacy=' : 'Adequacy of worm (chance to do as worm decided)',
+    'adequacy-increase-span=' : 'Period of worm lifespan within which the worm gets completely adequate',
     'visual-width-scale=' : 'Scale of visual width',
-    'visual-height-scale=' : 'Scale of visual height'}
+    'visual-height-scale=' : 'Scale of visual height',
+    'visual-debug-show=' : 'Do debug visual',
+    'visual-save-recap=' : 'Do save video recap'}
 
 cmd_to_thread = {
     'worms-init-num' : 'worms_init_number',
@@ -46,8 +50,12 @@ cmd_to_thread = {
     'food-lifespan' : 'food_lifespan',
     'worm-lifespan' : 'worm_lifespan',
     'worm-speed' : 'worm_speed',
+    'worm-adequacy' : 'worm_adequacy',
+    'adequacy-increase-span' : 'adequacy_increase_span',
     'visual-width-scale' : 'visual_width_scale',
-    'visual-height-scale' : 'visual_height_scale'}
+    'visual-height-scale' : 'visual_height_scale',
+    'visual-debug-show' : 'visual_debug_show',
+    'visual-save-recap' : 'visual_save_recap'}
 
 thread_params = {
     'worms_init_number' : 1,
@@ -61,8 +69,13 @@ thread_params = {
     'food_lifespan' : 100,
     'worm_lifespan' : 100,
     'worm_speed' : 5,
+    'worm_adequacy' : 0.8,
+    'adequacy_increase_span' : 0.5,
     'visual_width_scale' : 2,
     'visual_height_scale' : 2,
+    'visual_debug_show' : 0,
+    'visual_save_recap' : 0,
     'visual_worm_draw_color' : (255, 0, 0),
     'visual_spike_draw_color' : (0, 0, 255),
-    'visual_food_draw_color' : (0, 255, 0)}
+    'visual_food_draw_color' : (0, 255, 0),
+    'visual_fps' : 5}
