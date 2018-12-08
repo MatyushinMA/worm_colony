@@ -5,7 +5,7 @@ from collections import OrderedDict
 class WormNET(nn.Module):
     def __init__(self):
         super(WormNET, self).__init__()
-        
+
         # in - (batch_size, 3 - depth, 11 - width, 12 - height)
         self.features = nn.Sequential(OrderedDict([
         ('conv1', nn.Conv2d(3, 16, 3)),
@@ -52,10 +52,9 @@ class WormNET(nn.Module):
         turn = self.turn(features)
         move = self.move(features)
         attack = self.attack(features)
-        
-        turn = turn[:, 0, :, :] - turn[:, 1, :, :]
-        move = move[:, 0, :, :] - move[:, 1, :, :]
-        attack = attack[:, 0, :, :] - attack[:, 1, :, :]
-        
-        return [turn, move, attack]
-        
+
+        ezturn = turn[:, 0, :, :] - turn[:, 1, :, :]
+        ezmove = move[:, 0, :, :] - move[:, 1, :, :]
+        ezattack = attack[:, 0, :, :] - attack[:, 1, :, :]
+
+        return [turn, move, attack], [ezturn, ezmove, ezattack]

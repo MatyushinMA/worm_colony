@@ -285,6 +285,11 @@ class Thread:
             return crazy_action
         return action
 
+    def _learn(self):
+        if self.params['tick'] % self.params['learn_freq'] == 0:
+            for worm in self.colony:
+                worm.learn()
+
     def _run(self):
         while(self._is_alive()):
             self._tick()
@@ -298,11 +303,16 @@ class Thread:
                 worm_view = self._rotate_worm_view(worm_view, worm_position[2])
                 action = worm(worm_view) # feed worm view to worm
                 action = self._epsilon_rand(action, worm.get_time())
+                print(action)
                 attack = action[2]
                 self._update_worm_position(worm_position, action)
                 worm.set_position(*worm_position)
                 self._colony_interaction(worm, attack)
                 self._environment_interaction(worm, attack)
+            for worm in self.colony:
+                worm.memorize()
+            if self.params['learning']:
+                self._learn()
             self.colony.clean_up()
             self.environment.clean_up()
             self._spawn()
@@ -324,8 +334,12 @@ if __name__ == "__main__":
     for key, value in opts:
         if key[2:] in cmd_to_thread.keys():
             param_name = cmd_to_thread[key[2:]]
-            thread_params[param_name] = int(value)
-            print('-< %s has been set to %s\n' % (cmd_params[key[2:] + "="], str(value)))
+            if value:
+                thread_params[param_name] = int(value)
+                print('-< %s has been set to %s\n' % (cmd_params[key[2:] + "="], str(value)))
+            else:
+                thread_params[param_name] = True
+                print('-< %s has been set to True\n' % (cmd_params[key[2:]]))
     main = Thread(thread_params)
     main.generate()
     main.start()

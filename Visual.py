@@ -24,7 +24,7 @@ class Visual:
         frame.fill(255)
         for w in colony:
             worm_position = w.get_position()
-            worm_x, worm_y = worm_position[:2]
+            worm_x, worm_y, orient = worm_position[:]
             x1 = worm_x*self.params['width_scale']
             x2 = (worm_x+1)*self.params['width_scale']
             y1 = worm_y*self.params['height_scale']
