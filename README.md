@@ -35,6 +35,7 @@
 * --world-height= - Height of the world (int). / Высота мира.
 * --learning - Whether to learn worms. / Обучать ли червей.
 * --breeding - Do worms can breed. / Обучать ли червей
+* --immortal - Whether worms are immortal. / Являются ли черви бессмертными.
 * --breeding-age= - Breeding age (int). / Возраст, начиная с которого черви могут размножаться.
 * --world-lifespan= - Lifespan of the world (int). / Время жизни мира.
 * --spike-lifespan= - Lifespan of spike (int). / Время жизни колючки.

@@ -374,7 +374,8 @@ class Thread:
                 worm.memorize()
             if self.params['learning']:
                 self._learn()
-            self.stats['deaths'] = self.colony.clean_up()
+            if not self.params['immortal']:
+                self.stats['deaths'] = self.colony.clean_up()
             self.stats['resources_exhaustion'] = self.environment.clean_up()
             self._spawn()
             self.visual.show(self.colony, self.environment, self.stats)

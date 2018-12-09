@@ -79,7 +79,7 @@ class Visual:
             if w_saturation >= 0:
                 saturation_distribution[w_saturation] += 1
             if w_age >= 0:
-                age_distribution[w_age] += 1
+                age_distribution[min(w_age, self.colony.max_time)] += 1
         health_frame = {
             'name' : 'Health distribution',
             'y1' : 0,
