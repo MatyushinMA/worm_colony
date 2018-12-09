@@ -204,7 +204,7 @@ class Thread:
             # TODO: Interaction with tails (they live on sphere)
             int_worm = self.colony.get_worm_by_position(worm_x, worm_y, except_for=worm.get_id())
         if int_worm:
-            if attack > EPS: # if worm decided to attack
+            if attack > EPS or attack < -EPS: # if worm decided to attack
                 old_health = int_worm.get_health()
                 new_health = old_health - WORM_DAMAGE
                 int_worm.set_health(new_health)
