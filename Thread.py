@@ -69,8 +69,24 @@ class Thread:
         self.params['tick'] += 1
         self.environment.tick()
         self.colony.tick()
+        self.stats = {
+            'time' : self.params['tick'],
+            'breedings' : 0,
+            'crazy_actions' : 0,
+            'attacks' : 0,
+            'deaths' : 0,
+            'resources_exhaustion' : 0,
+            'population' : len(self.colony),
+            'world_lifespan' : self.params['world_lifespan'],
+            'food_eaten' : 0,
+            'spikes_hit' : 0,
+            'food_spawned' : 0,
+            'spikes_spawned' : 0
+        }
 
     def _is_alive(self):
+        if len(self.colony) == 0:
+            return False
         if self.params['tick'] <= self.params['world_lifespan']:
             return True
         else:
@@ -141,35 +157,44 @@ class Thread:
                 new_worm_view = np.rot90(new_worm_view, axes=(1, 0))
         return new_worm_view
 
+    def _normalize_worm_view(self, worm_view):
+        new_worm_view = worm_view
+        for i in range(3):
+            mean = worm_view[:,:,i].mean()
+            std = worm_view[:,:,i].std()
+            new_worm_view[:,:,i] -= mean
+            if std > 0:
+                new_worm_view[:,:,i] /= std
+        return new_worm_view
+
     def _update_worm_position(self, position, action):
         turn = action[0]
         move = action[1]
+        new_position = position
         if turn > EPS: # turn left
-            position[2] -= 1
-            position[2] %= 4
+            new_position[2] -= 1
+            new_position[2] %= 4
         elif turn < -EPS: # turn right
-            position[2] += 1
-            position[2] %= 4
+            new_position[2] += 1
+            new_position[2] %= 4
         move_value = 0
         if move > EPS: # move forward
             move_value = self.params['worm_speed']
         elif move < -EPS: # move backward
             move_value = -self.params['worm_speed']
         # actual moving
-        if position[2] == ORIENTATIONS['top']:
-            position[1] -= move_value
-            position[1] %= self.params['world_height']
-        elif position[2] == ORIENTATIONS['bottom']:
-            position[1] += move_value
-            position[1] %= self.params['world_height']
-        elif position[2] == ORIENTATIONS['left']:
-            position[0] -= move_value
-            position[0] %= self.params['world_width']
-        elif position[2] == ORIENTATIONS['right']:
-            position[0] += move_value
-            position[0] %= self.params['world_width']
+        if new_position[2] == ORIENTATIONS['top']:
+            new_position[1] -= move_value
+        elif new_position[2] == ORIENTATIONS['bottom']:
+            new_position[1] += move_value
+        elif new_position[2] == ORIENTATIONS['left']:
+            new_position[0] -= move_value
+        elif new_position[2] == ORIENTATIONS['right']:
+            new_position[0] += move_value
 
-        return position
+        new_position[0] %= self.params['world_width']
+        new_position[1] %= self.params['world_height']
+        return new_position
 
     def _colony_interaction(self, worm, attack):
         worm_position = worm.get_position()
@@ -177,12 +202,13 @@ class Thread:
         int_worm = None
         if self.world_view[worm_x, worm_y, 0] > 0:
             # TODO: Interaction with tails (they live on sphere)
-            int_worm = self.colony.get_worm_by_position(worm_x, worm_y)
+            int_worm = self.colony.get_worm_by_position(worm_x, worm_y, except_for=worm.get_id())
         if int_worm:
             if attack > EPS: # if worm decided to attack
                 old_health = int_worm.get_health()
                 new_health = old_health - WORM_DAMAGE
                 int_worm.set_health(new_health)
+                self.stats['attacks'] += 1
 
     def _food_interaction(self, worm, attack):
         worm_position = worm.get_position()
@@ -195,8 +221,10 @@ class Thread:
             old_health = worm.get_health()
             new_health = old_health + restore
             worm.set_health(new_health)
+            self.stats['food_eaten'] += 1
             if attack > EPS: # if worm decided to attack
                 int_food.eat() # food gets double hit
+                self.stats['food_eaten'] += 1
 
     def _spike_interaction(self, worm, attack):
         worm_position = worm.get_position()
@@ -209,6 +237,7 @@ class Thread:
             old_health = worm.get_health()
             new_health = old_health - SPIKE_DAMAGE
             worm.set_health(new_health)
+            self.stats['spikes_hit'] += 1
             if attack > EPS: # if worm decided to attack
                 int_spike.hit() # spike gets double hit
 
@@ -217,23 +246,28 @@ class Thread:
         self._food_interaction(worm, attack)
 
     def _spawn_spike(self):
-        if self.params['tick'] % SPAWN_TIMES['spike'] == 0:
-            x_pos = npr.randint(0, self.params['world_width'])
-            y_pos = npr.randint(0, self.params['world_height'])
-            self.environment.emplace_spike(x_pos, y_pos)
+        if self.params['tick'] % self.params['spike_spawn_time'] == 0:
+            for _ in range(self.params['spike_spawn_amount']):
+                x_pos = npr.randint(0, self.params['world_width'])
+                y_pos = npr.randint(0, self.params['world_height'])
+                self.environment.emplace_spike(x_pos, y_pos)
+                self.stats['spikes_spawned'] += 1
 
     def _spawn_food(self):
-        if self.params['tick'] % SPAWN_TIMES['food'] == 0:
-            x_pos = npr.randint(0, self.params['world_width'])
-            y_pos = npr.randint(0, self.params['world_height'])
-            self.environment.emplace_food(x_pos, y_pos)
+        if self.params['tick'] % self.params['food_spawn_time'] == 0:
+            for _ in range(self.params['food_spawn_amount']):
+                x_pos = npr.randint(0, self.params['world_width'])
+                y_pos = npr.randint(0, self.params['world_height'])
+                self.environment.emplace_food(x_pos, y_pos)
+                self.stats['food_spawned'] += 1
 
     def _spawn_worm(self):
-        if self.params['tick'] % SPAWN_TIMES['worm'] == 0:
-            x_pos = npr.randint(0, self.params['world_width'])
-            y_pos = npr.randint(0, self.params['world_height'])
-            orient = npr.randint(0, 4)
-            self.colony.emplace_worm(x_pos, y_pos, orient)
+        if self.params['tick'] % self.params['worm_spawn_time'] == 0:
+            for _ in range(self.params['worm_spawn_amount']):
+                x_pos = npr.randint(0, self.params['world_width'])
+                y_pos = npr.randint(0, self.params['world_height'])
+                orient = npr.randint(0, 4)
+                self.colony.emplace_worm(x_pos, y_pos, orient)
 
     def _spawn(self):
         self._spawn_spike()
@@ -282,6 +316,7 @@ class Thread:
         worm_adequacy = self.params['worm_adequacy'] + worm_expirience
         if odds > worm_adequacy: # time for inadequacy
             crazy_action = npr.uniform(0, 1, 3)
+            self.stats['crazy_actions'] += 1
             return crazy_action
         return action
 
@@ -290,32 +325,58 @@ class Thread:
             for worm in self.colony:
                 worm.learn()
 
+    def _breed(self, worm):
+        if worm.get_time() < self.params['breeding_age'] or worm.did_bred():
+            return
+        x0, y0, or0 = worm.get_position()
+        breed = self.colony.get_worm_by_position(x0, y0, except_for=worm.get_id())
+        if breed == None:
+            return
+        if breed.get_time() < self.params['breeding_age'] or breed.did_bred():
+            return
+        sd1 = worm.get_state_dict()
+        sd2 = breed.get_state_dict()
+        nsd = {}
+        for k in sd1:
+            l = npr.uniform()
+            new_weight = l*sd1[k] + (1 - l)*sd2[k]
+            nsd[k] = new_weight
+        x = npr.randint(x0 - 10, x0 + 10)
+        y = npr.randint(y0 - 10, y0 + 10)
+        orient = npr.randint(0, 4)
+        self.colony.emplace_worm(x, y, orient, nsd)
+        worm.breed_restore()
+        breed.breed_restore()
+        self.stats['breedings'] += 1
+
     def _run(self):
         while(self._is_alive()):
             self._tick()
-            self.visual.show_positions(self.colony, self.environment)
             self.world_view = self._render_world()
             for worm in self.colony:
                 worm_position = list(worm.get_position())
-                # print("Worm %d, position (%d, %d), health %d" % (worm.get_id(), worm_position[0], worm_position[1], worm.get_health()))
                 vb = self._get_worm_view(worm_position)
                 worm_view = self.__fill_worm_view(vb)
                 worm_view = self._rotate_worm_view(worm_view, worm_position[2])
+                worm_view = self._normalize_worm_view(worm_view)
                 action = worm(worm_view) # feed worm view to worm
                 action = self._epsilon_rand(action, worm.get_time())
-                print(action)
                 attack = action[2]
-                self._update_worm_position(worm_position, action)
+                worm_position = self._update_worm_position(worm_position, action)
                 worm.set_position(*worm_position)
                 self._colony_interaction(worm, attack)
                 self._environment_interaction(worm, attack)
             for worm in self.colony:
+                if self.params['breeding']:
+                    self._breed(worm)
+                worm.restore()
                 worm.memorize()
             if self.params['learning']:
                 self._learn()
-            self.colony.clean_up()
-            self.environment.clean_up()
+            self.stats['deaths'] = self.colony.clean_up()
+            self.stats['resources_exhaustion'] = self.environment.clean_up()
             self._spawn()
+            self.visual.show(self.colony, self.environment, self.stats)
             if self.params['visual_debug_show']:
                 sleep(RENDER_DELAY*(10**(-3)))
         self.visual.clear()

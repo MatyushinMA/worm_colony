@@ -8,15 +8,18 @@ import torch.nn as nn
 import numpy.random as npr
 
 class Worm:
-    def __init__(self, id, x, y, orientation=0):
+    def __init__(self, id, x, y, orientation=0, weights=None):
         self.id = id
-        self.health = 100
+        self.health = 100.
         self.time = 0
         self.power = 1
-        self.saturation = 100
+        self.saturation = 100.
         self.orient = orientation
+        self.bred = False
 
         self.net = WormNET()
+        if weights:
+            self.net.load_state_dict(weights)
         self.storage = Storage(WORM_MEMORY_SIZE)
         self.optimizer = torch.optim.Adam(self.net.parameters(), INITIAL_LR)
         self.loss_fn = nn.CrossEntropyLoss()
@@ -39,11 +42,14 @@ class Worm:
         return pred
 
     def memorize(self):
-        self._state['health'] = self.health - self._state['health']
-        self._state['saturation'] = self.saturation - self._state['saturation']
-        self.storage.push_memo(self._view, self._act, self._state)
+        if self.time > 0:
+            self._state['health'] = self.health - self._state['health']
+            self._state['saturation'] = self.saturation - self._state['saturation']
+            self.storage.push_memo(self._view, self._act, self._state)
 
     def learn(self):
+        if self.time == 0:
+            return
         self.net.train()
         lbs = npr.randint(1, LEARN_BATCH_SIZE)
         learn_batch = self.storage.batch(lbs)
@@ -81,17 +87,41 @@ class Worm:
                     param_group['lr'] = lr
 
                 prob, _ = self.net(view)
-                loss = torch.zeros(1, requires_grad=True)
+                loss1 = None
+                flag1 = False
+                loss2 = None
+                flag2 = False
+                loss3 = None
+                flag3 = False
                 if target[0].item() >= 0:
-                    loss += self.loss_fn(prob[0], target[0])
+                    loss1 = self.loss_fn(prob[0], target[0])
+                    flag1 = True
                 if target[1].item() >= 0:
-                    loss += self.loss_fn(prob[1], target[1])
+                    loss2 = self.loss_fn(prob[1], target[1])
+                    flag2 = True
                 if target[2].item() >= 0:
-                    loss += self.loss_fn(prob[2], target[2])
+                    loss3 = self.loss_fn(prob[2], target[2])
+                    flag3 = True
 
                 self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
+                if flag1:
+                    loss = loss1
+                    if flag2:
+                        loss += loss2
+                    if flag3:
+                        loss += loss3
+                    loss.backward()
+                    self.optimizer.step()
+                elif flag2:
+                    loss = loss2
+                    if flag3:
+                        loss += loss3
+                    loss.backward()
+                    self.optimizer.step()
+                elif flag3:
+                    loss = loss3
+                    loss.backward()
+                    self.optimizer.step()
 
     def get_id(self):
         return self.id
@@ -107,6 +137,7 @@ class Worm:
 
     def set_health(self, h):
         self.health = h
+        self.health = max(min(self.health, 100), 0)
 
     def get_saturation(self):
         return self.saturation
@@ -119,6 +150,24 @@ class Worm:
 
     def tick(self):
         self.time += 1
+        self.bred = False
+
+    def restore(self):
+        self.saturation -= 5.
+        self.saturation = max(self.saturation, 0.)
+        if self.saturation <= 30.:
+            self.health -= 5.
+            self.health = max(self.health, 0.)
+        elif self.saturation >= 60.:
+            self.health += 5.
+            self.health = min(self.health, 100.)
+
+    def breed_restore(self):
+        self.health = 100.
+        self.bred = True
+
+    def did_bred(self):
+        return self.bred
 
     def get_position(self):
         return (self.x, self.y, self.orient)
@@ -127,3 +176,6 @@ class Worm:
         self.x = x
         self.y = y
         self.orient = orientation
+
+    def get_state_dict(self):
+        return self.net.state_dict()

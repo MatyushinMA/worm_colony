@@ -2,6 +2,7 @@ import math
 
 from Spike import Spike
 from Food import Food
+from Utils import SPIKE_DAMAGE_AOE
 
 class Environment:
     def __init__(self, max_times):
@@ -73,14 +74,14 @@ class Environment:
     def _spike_interception(self, x, y):
         inter_res = 0.
         for sp in self.lists['spike']:
-            if sp.get_position == (x, y):
+            if sp.get_position() == (x, y):
                 inter_res += float(sp.get_power())
         return inter_res
 
     def _food_interception(self, x, y):
         inter_res = 0.
         for f in self.lists['food']:
-            if f.get_position == (x, y):
+            if f.get_position() == (x, y):
                 inter_res += float(f.get_saturation())
         return inter_res
 
@@ -108,7 +109,7 @@ class Environment:
         for sp in self.lists['spike']:
             spike_position = sp.get_position()
             dist = math.fabs(spike_position[0] - x) + math.fabs(spike_position[1] - y)
-            if dist <= 10:
+            if dist <= SPIKE_DAMAGE_AOE:
                 return sp
 
     def get_food_by_position(self, x, y):

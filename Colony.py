@@ -24,6 +24,12 @@ class Colony:
     def next(self):
         return self.__next__()
 
+    def len(self):
+        return len(self.worms)
+
+    def __len__(self):
+        return self.len()
+
     def _kill_worm_by_id(self, id):
         for i, w in enumerate(self.worms):
             if w.get_id() == id:
@@ -33,11 +39,10 @@ class Colony:
                 return True
         return False
 
-    def get_worm_by_position(self, x, y):
-        # TODO: Get worm by tail too
+    def get_worm_by_position(self, x, y, except_for=-1):
         for w in self.worms:
             worm_position = w.get_position()
-            if worm_position[0] == x and worm_position[1] == y:
+            if worm_position[0] == x and worm_position[1] == y and w.get_id() != except_for:
                 return w
         return None
 
@@ -75,16 +80,15 @@ class Colony:
             w.tick()
 
     def clean_up(self):
-        count = 0
         ex_ids = []
         for w in self.worms:
-            if w.get_time() > self.max_time or w.get_saturation() <= 0 or w.get_health() <= 0:
+            if w.get_time() > self.max_time or w.get_health() <= 0:
                 ex_ids.append(w.get_id())
         self.kill_worm_by_id(ex_ids)
         return len(ex_ids)
 
-    def emplace_worm(self, x, y, orient=0):
-        self.worms.append(Worm(self.act_id, x, y, orient))
+    def emplace_worm(self, x, y, orient=0, weights=None):
+        self.worms.append(Worm(self.act_id, x, y, orient, weights))
         self.act_id += 1
         self.act_worms += 1
         return True

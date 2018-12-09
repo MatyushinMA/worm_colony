@@ -31,7 +31,7 @@ class Storage:
         return len(self.inputs)
 
     def batch(self, batch_size):
-        indices = npr.randint(1, len(self), batch_size).tolist()
+        indices = npr.randint(0, len(self), batch_size).tolist()
         if len(indices) == 1:
             id = indices[0]
             return [(self.inputs[id], self.outputs[id], self.rewards[id])]
