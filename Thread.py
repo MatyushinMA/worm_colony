@@ -316,8 +316,9 @@ class Thread:
         odds = npr.uniform(0, 1)
         inadequacy_cap = self.params['worm_lifespan']*self.params['adequacy_increase_span']
         worm_expirience = (1 - self.params['worm_adequacy'])*(float(age)/inadequacy_cap)
-        worm_adequacy = self.params['worm_adequacy'] + worm_expirience
-        if odds > worm_adequacy: # time for inadequacy
+        global_inadequacy = max(1. - self.params['tick']/float(self.params['global_adequacy_span']*self.params['world_lifespan']), 0.)
+        worm_adequacy = self.params['worm_adequacy'] + worm_expirience - global_inadequacy
+        if odds > worm_adequacy: # time for crazy actions
             crazy_action = npr.uniform(0, 1, 3)
             self.stats['crazy_actions'] += 1
             return crazy_action

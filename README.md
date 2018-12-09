@@ -53,6 +53,7 @@
 * --worm-speed= - Speed of worm (int). / Скорость движения червя.
 * --worm-adequacy= - Adequacy of the worm (chance to do as worm decided) (float, from 0 to 1). / Адекватность червей (шанс сделать действие, которое предпочёл червь).
 * --adequacy-increase-span= - Period of worm lifespan within which the worm gets completely adequate (float, from 0 to 1). / Период жизни червя, за который он станет полностью адекватным.
+* --global-adequacy-span= - Period of world lifespan within which worms store their adequacy (float, from 0 to 1). / Период глобального времени, в который черви накапливают адекватность.
 * --learn-frequency= - Frequency of learning sessions (less than worm lifespan, more than LEARN_BATCH_SIZE) (int). / Время обучения червей.
 * --visual-width-scale= - Scale of visual width (int). / Растяжение мира при показе по ширине.
 * --visual-height-scale= - Scale of visual height (int). / Растяжение мира при показе по высоте.

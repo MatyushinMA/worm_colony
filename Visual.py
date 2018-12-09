@@ -187,11 +187,11 @@ class Visual:
             'colors' : [self.params['food_draw_color'], self.params['spike_draw_color']]
         }
         crazy_frame = {
-            'name' : 'Crazy actions',
+            'name' : 'Crazy actions-attacks-population',
             'y1' : 4*2*self.height // 5,
             'y2' : 2*self.height,
-            'names' : ['crazy_actions'],
-            'colors' : [(13, 92, 203)]
+            'names' : ['crazy_actions', 'attacks', 'population'],
+            'colors' : [(13, 92, 180), (0, 0, 255), (255, 0, 0)]
         }
         self.show_graph(bd_frame)
         self.show_graph(fs_frame)
