@@ -61,9 +61,9 @@ thread_params = { # You can set the params here directly
 
 # DESCRIPTION TABLE
 cmd_params = { # Or you can start Thread.py with parameters from this list, the second string is the description (all flags start with --)
-    'worms-init-num=' : 'Initial number of worms (int)',
-    'food-init-num=' : 'Initial number of food (int)',
-    'spike-init-num=' : 'Initial number of spikes (int)',
+    'worms-init-num=' : 'Initial amount of worms (int)',
+    'food-init-num=' : 'Initial amount of food (int)',
+    'spike-init-num=' : 'Initial amount of spikes (int)',
     'spike-spawn-time=' : 'Time for spawn new spikes (int)',
     'food-spawn-time=' : 'Time for spawn new food (int)',
     'worm-spawn-time=' : 'Time for spawn new worms (int)',
@@ -74,7 +74,7 @@ cmd_params = { # Or you can start Thread.py with parameters from this list, the 
     'world-height=' : 'Height of the world (int)',
     'learning' : 'Learning',
     'breeding' : 'Breeding',
-    'breeding-age=' : 'Breeding age',
+    'breeding-age=' : 'Breeding age (int)',
     'world-lifespan=' : 'Lifespan of the world (int)',
     'spike-lifespan=' : 'Lifespan of spike (int)',
     'food-lifespan=' : 'Lifespan of food (int)',
@@ -82,7 +82,7 @@ cmd_params = { # Or you can start Thread.py with parameters from this list, the 
     'worm-speed=' : 'Speed of worm (int)',
     'worm-adequacy=' : 'Adequacy of worm (chance to do as worm decided) (float, from 0 to 1)',
     'adequacy-increase-span=' : 'Period of worm lifespan within which the worm gets completely adequate (float, from 0 to 1)',
-    'learn-frequency=' : 'Frequency of learning sessions (less than worm lifespan, more than 0) (int)',
+    'learn-frequency=' : 'Frequency of learning sessions (less than worm lifespan, more than LEARN_BATCH_SIZE) (int)',
     'visual-width-scale=' : 'Scale of visual width (int)',
     'visual-height-scale=' : 'Scale of visual height (int)',
     'visual-debug-show' : 'Do debug visual',

@@ -221,6 +221,7 @@ class Thread:
             old_health = worm.get_health()
             new_health = old_health + restore
             worm.set_health(new_health)
+            worm.set_saturation(100.)
             self.stats['food_eaten'] += 1
             if attack > EPS: # if worm decided to attack
                 int_food.eat() # food gets double hit
