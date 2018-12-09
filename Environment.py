@@ -27,6 +27,12 @@ class Environment:
         self._iter += 1
         return ret
 
+    def spike_len(self):
+        return self.counts['spike']
+
+    def food_len(self):
+        return self.counts['food']
+
     def next(self):
         return self.__next__()
 
@@ -94,10 +100,10 @@ class Environment:
     def clean_up(self):
         ex_lists = {'spike' : [], 'food' : []}
         for sp in self.lists['spike']:
-            if sp.get_time() > self.max_times['spike']:
+            if sp.get_time() > self.max_times['spike'] or sp.get_strength() == 0:
                 ex_lists['spike'].append(sp.get_id())
         for f in self.lists['food']:
-            if f.get_time() > self.max_times['food']:
+            if f.get_time() > self.max_times['food'] or f.get_saturation() == 0:
                 ex_lists['food'].append(f.get_id())
         for sp_id in ex_lists['spike']:
             self.delete_spike_by_id(sp_id)

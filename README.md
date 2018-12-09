@@ -8,18 +8,24 @@
 * LEARN_BATCH_SIZE - Batch size for learning. / Размер батча для обучения.
 * HEALTH_COEF - Coefficient for health in reward formula. / Коэффициент здоровья в формуле награды.
 * SATURATION_COEF - Coefficient for saturation in reward formula. / Коэффициент насыщения в формуле награды.
+* BREEDING_COEF - Coefficient for breeding in reward formula. / Коэффициент размножения в формуле награды.
 * AGE_ACTIVITY - Intensivity of learning through age. / Обучаемость в большом возрасте.
 
 * EPS - Decisioning threshold. / Порог принятия решения.
 * FOOD_RESTORATION - Amount of health restored by food (when eaten). / Количество здоровья, восстанавливаемого при съедании еды.
 * SPIKE_DAMAGE - Amount of health taken by hitting spike. / Количество здоровья, отнимаемого при ударе о колючку.
 * WORM_DAMAGE - Amount of health taken by hitting worm (if attacks). / Количество здоровья, отнимаемого при атаке червя.
+* STARVATION_DAMAGE_THRESHOLD - Threshold lower which worm gets damaged. / Сытость, ниже которой червь начинает получать урон от голода.
+* STARVATION_DAMAGE - Damage when worm is starving. / Урон от голода.
+* SATURATION_HEAL_THRESHOLD - Threshold upper which worm gets healed. / Сытость, выше которой червь начинает получать лечение.
+* SATURATION_HEAL - Heal when worm is well fed. / Лечение, получаемое сытым червем.
+* SATURATION_TICK_REDUCTION - Reduction of saturation per tick. / Уменьшение сытости за такт.
 * RENDER_DELAY - Delay in ms for rendering debug picture. Works if --visual-debug-show parameter is True. / Задержка на рендеринг отладочной картинки. Используется только при включенном  --visual-debug-show.
 
 ## Reward formula:
-### reward = HEALTH_COEF\*delta_health + SATURATION_COEF\*delta_saturation
+### reward = HEALTH_COEF\*delta_health + SATURATION_COEF\*delta_saturation + BREEDING_COEF\*int(self.bred)
 ## Learning rate formula:
-### lr = (INITIAL_LR  - reward/float(100))\*float(AGE_ACTIVITY)/(1 + (self.time\*\*2))
+### lr = (INITIAL_LR  - reward/float(100))\*float(AGE_ACTIVITY)/((1 + (self.time\*\*2))\*global_tick)
 
 ## Hyperparamters, you can set from cmd:
 * --worms-init-num= - Initial amount of worms (int). / Начальное количество червей.
@@ -37,6 +43,9 @@
 * --breeding - Do worms can breed. / Обучать ли червей
 * --immortal - Whether worms are immortal. / Являются ли черви бессмертными.
 * --breeding-age= - Breeding age (int). / Возраст, начиная с которого черви могут размножаться.
+* --breeding-prob= - Breeding probability when worm met (float, from 0 to 1). / Вероятность размножения при встрече.
+* --breeding-saturation-share= - Part of saturation granted to child (float, from 0 to 1). / Часть сытости, передаваемая потомку.
+* --breeding-saturation-barrier= - Saturation level from which worm cat breed (int). / Уровень насыщения, начиная с которого возможно размножение.
 * --world-lifespan= - Lifespan of the world (int). / Время жизни мира.
 * --spike-lifespan= - Lifespan of spike (int). / Время жизни колючки.
 * --food-lifespan= - Lifespan of food (int). / Время жизни еды.

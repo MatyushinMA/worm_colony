@@ -10,47 +10,56 @@ VIEW = { #            <
     'left' : 5, #     <
     'right' : 5} #    <-- TO THIS
 
-WORM_MEMORY_SIZE = 100 # <-- LEARNING PARAMETERS!
-INITIAL_LR = 0.001 #     <   Initial learning rate, try different values
-LEARN_BATCH_SIZE = 5 #   <   We learn on random batch from worm memory, this is max batch size
-HEALTH_COEF = 0.5 #      <   REWARD FORMULA IS:
-SATURATION_COEF = 0.5 #  <   reward = HEALTH_COEF*delta_health + SATURATION_COEF*delta_saturation
-AGE_ACTIVITY = 10 #      <-- lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/(1 + (self.time**2))
+WORM_MEMORY_SIZE = 30 # <-- LEARNING PARAMETERS!
+INITIAL_LR = 0.01 #     <   Initial learning rate, try different values
+LEARN_BATCH_SIZE = 10 # <   We learn on random batch from worm memory, this is max batch size
+HEALTH_COEF = 0.5 #     <   REWARD FORMULA IS:
+SATURATION_COEF = 0.5 # <   reward = HEALTH_COEF*delta_health + SATURATION_COEF*delta_saturation + BREEDING_COEF*int(self.bred)
+BREEDING_COEF = 0.5 #   <
+AGE_ACTIVITY = 10 #     <-- lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/((1 + (self.time**2))*global_tick)
 
 # HYPERPARAMETERS
 # From here onwards can be changed freely
 EPS = 0.1 # decision threshold (if worm decides in -EPS < decision < EPS, he does not perform any action), this affects even crazy actions
-FOOD_RESTORATION = 10 # Food restores Health
-SPIKE_DAMAGE = 10 # Spike reduces health
+FOOD_RESTORATION = 100 # Food restores health and fully restores saturation
+SPIKE_DAMAGE = 20 # Spike reduces health
 SPIKE_DAMAGE_AOE = 2 # Spike hits in aoe (l1 metrics)
-WORM_DAMAGE = 5 # Worm reduces other worm health if attacks
+WORM_DAMAGE = 20 # Worm reduces other worm health if attacks
+STARVATION_DAMAGE_THRESHOLD = 10
+STARVATION_DAMAGE = 1
+SATURATION_HEAL_THRESHOLD = 70
+SATURATION_HEAL = 10
+SATURATION_TICK_REDUCTION = 4
 RENDER_DELAY = 50 # Render delay when visual debug show ms
 
 # DEFAULT PARAMS MANIPULATION
 thread_params = { # You can set the params here directly
-    'worms_init_number' : 1,
-    'food_init_number' : 1,
+    'worms_init_number' : 100,
+    'food_init_number' : 5000,
     'spike_init_number' : 1,
-    'spike_spawn_time' : 50,
-    'food_spawn_time' : 50,
+    'spike_spawn_time' : 150,
+    'food_spawn_time' : 20,
     'worm_spawn_time' : 10000,
-    'spike_spawn_amount' : 1,
-    'food_spawn_amount' : 1,
-    'worm_spawn_amount' : 1,
+    'spike_spawn_amount' : 10,
+    'food_spawn_amount' : 1000,
+    'worm_spawn_amount' : 0,
     'world_width' : 100,
     'world_height' : 100,
     'learning' : False,
     'breeding' : False,
     'immortal' : False,
     'breeding_age' : 10,
-    'world_lifespan' : 10000,
-    'spike_lifespan' : 100,
-    'food_lifespan' : 100,
+    'breeding_prob' : 0.75,
+    'breed_sat_share' : 0.2,
+    'breed_sat_barrier' : 5,
+    'world_lifespan' : 1000,
+    'spike_lifespan' : 1000,
+    'food_lifespan' : 1000,
     'worm_lifespan' : 100,
-    'worm_speed' : 5,
-    'worm_adequacy' : 0.8,
-    'adequacy_increase_span' : 0.5,
-    'learn_freq' : 10,
+    'worm_speed' : 3,
+    'worm_adequacy' : 0.6,
+    'adequacy_increase_span' : 0.75,
+    'learn_freq' : 11,
     'visual_width_scale' : 8,
     'visual_height_scale' : 8,
     'visual_debug_show' : False,
@@ -77,6 +86,9 @@ cmd_params = { # Or you can start Thread.py with parameters from this list, the 
     'breeding' : 'Breeding',
     'immortal' : 'Immortal worms',
     'breeding-age=' : 'Breeding age (int)',
+    'breeding-prob=' : 'Probability of breeding when met (float, from 0 to 1)',
+    'breeding-saturation-share=' : 'Part of saturation granted to child (float, from 0 to 1)',
+    'breeding-saturation-barrier=' : 'Saturation level from which worm cat breed (int)',
     'world-lifespan=' : 'Lifespan of the world (int)',
     'spike-lifespan=' : 'Lifespan of spike (int)',
     'food-lifespan=' : 'Lifespan of food (int)',
@@ -107,6 +119,9 @@ cmd_to_thread = { # INTERNAL USAGE ONLY
     'breeding' : 'breeding',
     'immortal' : 'immortal',
     'breeding-age' : 'breeding_age',
+    'breeding-prob' : 'breeding_prob',
+    'breeding-saturation-share' : 'breed_sat_share',
+    'breeding-saturation-barrier' : 'breed_sat_barrier',
     'world-lifespan' : 'world_lifespan',
     'spike-lifespan' : 'spike_lifespan',
     'food-lifespan' : 'food_lifespan',

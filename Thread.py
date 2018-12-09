@@ -77,6 +77,8 @@ class Thread:
             'deaths' : 0,
             'resources_exhaustion' : 0,
             'population' : len(self.colony),
+            'spikes_amount' : self.environment.spike_len(),
+            'food_amount' : self.environment.food_len(),
             'world_lifespan' : self.params['world_lifespan'],
             'food_eaten' : 0,
             'spikes_hit' : 0,
@@ -324,31 +326,40 @@ class Thread:
     def _learn(self):
         if self.params['tick'] % self.params['learn_freq'] == 0:
             for worm in self.colony:
-                worm.learn()
+                worm.learn(self.params['tick'])
 
     def _breed(self, worm):
-        if worm.get_time() < self.params['breeding_age'] or worm.did_bred():
+        if worm.get_time() < self.params['breeding_age'] or worm.did_bred() or worm.get_saturation() < self.params['breed_sat_barrier']:
             return
         x0, y0, or0 = worm.get_position()
         breed = self.colony.get_worm_by_position(x0, y0, except_for=worm.get_id())
         if breed == None:
             return
-        if breed.get_time() < self.params['breeding_age'] or breed.did_bred():
+        if breed.get_time() < self.params['breeding_age'] or breed.did_bred() or breed.get_saturation() < self.params['breed_sat_barrier']:
             return
-        sd1 = worm.get_state_dict()
-        sd2 = breed.get_state_dict()
-        nsd = {}
-        for k in sd1:
-            l = npr.uniform()
-            new_weight = l*sd1[k] + (1 - l)*sd2[k]
-            nsd[k] = new_weight
-        x = npr.randint(x0 - 10, x0 + 10)
-        y = npr.randint(y0 - 10, y0 + 10)
-        orient = npr.randint(0, 4)
-        self.colony.emplace_worm(x, y, orient, nsd)
-        worm.breed_restore()
-        breed.breed_restore()
-        self.stats['breedings'] += 1
+        while True:
+            odds = npr.uniform(0, 1)
+            if odds > self.params['breeding_prob']:
+                return
+            sd1 = worm.get_state_dict()
+            sd2 = breed.get_state_dict()
+            nsd = {}
+            for k in sd1:
+                l = npr.uniform()
+                new_weight = l*sd1[k] + (1 - l)*sd2[k]
+                nsd[k] = new_weight
+            x = npr.randint(x0 - 10, x0 + 10)
+            y = npr.randint(y0 - 10, y0 + 10)
+            orient = npr.randint(0, 4)
+            sat1 = worm.get_saturation()
+            sat2 = breed.get_saturation()
+            new_sat = int(sat1*self.params['breed_sat_share']) + int(sat2*self.params['breed_sat_share'])
+            worm.set_saturation(sat1 - int(sat1*self.params['breed_sat_share']))
+            breed.set_saturation(sat2 - int(sat2*self.params['breed_sat_share']))
+            self.colony.emplace_worm(x, y, orient, nsd, new_sat)
+            worm.breed_restore()
+            breed.breed_restore()
+            self.stats['breedings'] += 1
 
     def _run(self):
         while(self._is_alive()):

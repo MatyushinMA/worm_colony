@@ -87,8 +87,10 @@ class Colony:
         self.kill_worm_by_id(ex_ids)
         return len(ex_ids)
 
-    def emplace_worm(self, x, y, orient=0, weights=None):
-        self.worms.append(Worm(self.act_id, x, y, orient, weights))
+    def emplace_worm(self, x, y, orient=0, weights=None, saturation=100):
+        new_worm = Worm(self.act_id, x, y, orient, weights)
+        new_worm.set_saturation(saturation)
+        self.worms.append(new_worm)
         self.act_id += 1
         self.act_worms += 1
         return True
