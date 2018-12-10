@@ -347,7 +347,7 @@ class Thread:
             nsd = {}
             for k in sd1:
                 l = npr.uniform()
-                new_weight = l*sd1[k] + (1 - l)*sd2[k]
+                new_weight = (l*sd1[k] + (1 - l)*sd2[k]).clone().detach().requires_grad_(True)
                 nsd[k] = new_weight
             x = npr.randint(x0 - 10, x0 + 10)
             y = npr.randint(y0 - 10, y0 + 10)
