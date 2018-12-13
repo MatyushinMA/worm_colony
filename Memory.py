@@ -5,6 +5,7 @@ from operator import itemgetter
 class Storage:
     def __init__(self, size):
         self.size = size
+        self.views = []
         self.inputs = []
         self.outputs = []
         self.rewards = []
@@ -21,39 +22,41 @@ class Storage:
         return memo
 
     def __getitem__(self, id):
+        v = self.views[id]
         i = self.inputs[id]
         o = self.outputs[id]
         r = self.rewards[id]
-        memo = (i, o, r)
+        memo = (v, i, o, r)
         return memo
 
     def __len__(self):
         return len(self.inputs)
 
+    def topn(self, n):
+        start = len(self.inputs) - 1
+        if start < 0:
+            return None
+        end = start - n
+        memos = [self[max(i, 0)] for i in range(start, end, -1)]
+        return memos
+
     def batch(self, batch_size):
         indices = npr.randint(0, len(self), batch_size).tolist()
         if len(indices) == 1:
-            id = indices[0]
-            return [(self.inputs[id], self.outputs[id], self.rewards[id])]
-        iss = (itemgetter(*indices))(self.inputs)
-        oss = (itemgetter(*indices))(self.outputs)
-        rss = (itemgetter(*indices))(self.rewards)
-        memos = []
-        for i in range(len(indices)):
-            input = iss[i]
-            output = oss[i]
-            reward = rss[i]
-            memos.append((input, output, reward))
+            return [self[indices[0]]]
+        memos = [self[i] for i in indices]
         return memos
 
-    def push_memo(self, inputs, outputs, rewards):
+    def push_memo(self, view, inputs, outputs, rewards):
         if len(self) == self.size:
             self.poll()
+        self.views.append(view)
         self.inputs.append(inputs)
         self.outputs.append(outputs)
         self.rewards.append(rewards)
 
     def poll(self):
+        self.views = self.views[1:]
         self.inputs = self.inputs[1:]
         self.outputs = self.outputs[1:]
         self.rewards = self.rewards[1:]

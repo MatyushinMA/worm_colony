@@ -1,7 +1,7 @@
 from Nnet import WormNET
 from Memory import Storage
-from Utils import WORM_MEMORY_SIZE, INITIAL_LR, LEARN_BATCH_SIZE
-from Utils import HEALTH_COEF, SATURATION_COEF, EPS, AGE_ACTIVITY
+from Utils import WORM_MEMORY_SIZE, WORM_RECURRENT_VIEW, INITIAL_LR, LEARN_BATCH_SIZE
+from Utils import HEALTH_COEF, SATURATION_COEF, AGE_ACTIVITY
 from Utils import SATURATION_TICK_REDUCTION, STARVATION_DAMAGE_THRESHOLD
 from Utils import STARVATION_DAMAGE, SATURATION_HEAL_THRESHOLD, SATURATION_HEAL
 from Utils import BREEDING_COEF
@@ -9,6 +9,7 @@ from math import fabs
 
 import torch
 import torch.nn as nn
+import numpy as np
 import numpy.random as npr
 
 class Worm:
@@ -26,7 +27,8 @@ class Worm:
             self.net.load_state_dict(weights)
         self.storage = Storage(WORM_MEMORY_SIZE)
         self.optimizer = torch.optim.Adam(self.net.parameters(), INITIAL_LR)
-        self.loss_fn = nn.CrossEntropyLoss()
+        self.good_loss_fn = nn.CrossEntropyLoss()
+        self.bad_loss_fn = nn.MSELoss()
         self.x = x
         self.y = y
 
@@ -35,97 +37,65 @@ class Worm:
         feed_env = feed_env.permute(2, 0, 1)
         feed_env = feed_env.view(1, 3, 11, 12)
         feed_env = feed_env.float()
-        self._view = feed_env
+        prev_views = self.storage.topn(WORM_RECURRENT_VIEW)
+        if prev_views == None:
+            prev_views = [feed_env for i in range(WORM_RECURRENT_VIEW)]
+        else:
+            prev_views = [prev_views[i][0] for i in range(WORM_RECURRENT_VIEW)]
+        feed_view = tuple(prev_views + [feed_env])
+        feed_view = torch.cat(feed_view, dim=1)
         with torch.no_grad():
-            probs, pred = self.net(feed_env)
-        self._act = pred
+            prob = self.net(feed_view)
+        self._view = feed_env
+        self._inputs = feed_view
+        self._act = prob
         self._state = {
             'health' : self.health,
             'saturation' : self.saturation
         }
-        return pred
+        return np.argmax(prob.numpy()[0, 0, 0, :])
 
     def memorize(self):
         if self.time > 0:
             self._state['health'] = self.health - self._state['health']
             self._state['saturation'] = self.saturation - self._state['saturation']
-            self.storage.push_memo(self._view, self._act, self._state)
+            self.storage.push_memo(self._view, self._inputs, self._act, self._state)
 
     def learn(self, global_tick):
         if self.time == 0:
-            return
+            return 0.
         self.net.train()
         lbs = npr.randint(1, LEARN_BATCH_SIZE)
         learn_batch = self.storage.batch(lbs)
-        for view, act, state in learn_batch:
+        ret_loss = 0.
+        for view, feed_view, act, state in learn_batch:
             reward = HEALTH_COEF*state['health'] + SATURATION_COEF*state['saturation'] + BREEDING_COEF*int(self.bred)
             if reward <= 0:
-                target = [torch.zeros([1, 1, 1], dtype=torch.long), torch.zeros([1, 1, 1], dtype=torch.long), torch.zeros([1, 1, 1], dtype=torch.long)]
-                for act_id in range(3):
-                    if act[act_id] > EPS:
-                        target[act_id][0] = 1
-                    elif act[act_id] >= -EPS: # Stagnation penalty
-                        target[act_id][0] = npr.randint(0, 2)
-                lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/((self.time)*global_tick)
+                '''lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/((self.time)*global_tick)
                 for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = lr
-
-                prob, _ = self.net(view)
-                loss1 = self.loss_fn(prob[0], target[0])
-                loss2 = self.loss_fn(prob[1], target[1])
-                loss3 = self.loss_fn(prob[2], target[2])
-                loss = loss1 + loss2 + loss3
-
+                    param_group['lr'] = lr'''
+                target = np.argmax(act.numpy()[0, 0, 0, :])
+                tensor_target = torch.zeros([1])
+                prob = self.net(feed_view)
+                loss = self.bad_loss_fn(prob[0, 0, 0, target], tensor_target)
+                ret_loss += loss.item()
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
             else:
-                target = [torch.ones([1, 1, 1], dtype=torch.long), torch.ones([1, 1, 1], dtype=torch.long), torch.ones([1, 1, 1], dtype=torch.long)]
-                for act_id in range(3):
-                    if act[act_id] > EPS:
-                        target[act_id][0] = 0
-                    elif act[act_id] >= -EPS: # Stagnation encouraging
-                        target[act_id][0] = -1
-                lr = max(INITIAL_LR  - reward/float(100), 0.)*float(AGE_ACTIVITY)/((self.time)*global_tick)
+                '''lr = max(INITIAL_LR  - reward/float(100), 0.)*float(AGE_ACTIVITY)/((self.time)*global_tick)
                 for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = lr
-
-                prob, _ = self.net(view)
-                loss1 = None
-                flag1 = False
-                loss2 = None
-                flag2 = False
-                loss3 = None
-                flag3 = False
-                if target[0].item() >= 0:
-                    loss1 = self.loss_fn(prob[0], target[0])
-                    flag1 = True
-                if target[1].item() >= 0:
-                    loss2 = self.loss_fn(prob[1], target[1])
-                    flag2 = True
-                if target[2].item() >= 0:
-                    loss3 = self.loss_fn(prob[2], target[2])
-                    flag3 = True
-
+                    param_group['lr'] = lr'''
+                target = np.argmax(act.numpy()[0, 0, 0, :])
+                tensor_target = torch.ones([1], dtype=torch.long)
+                tensor_target[0] = target
+                prob = self.net(feed_view)
+                loss = self.good_loss_fn(prob[0, 0, :, :], tensor_target)
+                ret_loss += loss.item()
                 self.optimizer.zero_grad()
-                if flag1:
-                    loss = loss1
-                    if flag2:
-                        loss += loss2
-                    if flag3:
-                        loss += loss3
-                    loss.backward()
-                    self.optimizer.step()
-                elif flag2:
-                    loss = loss2
-                    if flag3:
-                        loss += loss3
-                    loss.backward()
-                    self.optimizer.step()
-                elif flag3:
-                    loss = loss3
-                    loss.backward()
-                    self.optimizer.step()
+                loss.backward()
+                self.optimizer.step()
+        return ret_loss / lbs
 
     def get_id(self):
         return self.id

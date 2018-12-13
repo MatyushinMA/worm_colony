@@ -83,7 +83,8 @@ class Thread:
             'food_eaten' : 0,
             'spikes_hit' : 0,
             'food_spawned' : 0,
-            'spikes_spawned' : 0
+            'spikes_spawned' : 0,
+            'loss' : 0.
         }
 
     def _is_alive(self):
@@ -169,20 +170,20 @@ class Thread:
                 new_worm_view[:,:,i] /= std
         return new_worm_view
 
-    def _update_worm_position(self, position, action):
-        turn = action[0]
-        move = action[1]
+    def _update_worm_position(self, position, movement):
+        move = movement[0]
+        turn = movement[1]
         new_position = position
-        if turn > EPS: # turn left
+        if turn == 0: # turn left
             new_position[2] -= 1
             new_position[2] %= 4
-        elif turn < -EPS: # turn right
+        elif turn == 2: # turn right
             new_position[2] += 1
             new_position[2] %= 4
         move_value = 0
-        if move > EPS: # move forward
+        if move == 0: # move forward
             move_value = self.params['worm_speed']
-        elif move < -EPS: # move backward
+        elif move == 2: # move backward
             move_value = -self.params['worm_speed']
         # actual moving
         if new_position[2] == ORIENTATIONS['top']:
@@ -206,7 +207,7 @@ class Thread:
             # TODO: Interaction with tails (they live on sphere)
             int_worm = self.colony.get_worm_by_position(worm_x, worm_y, except_for=worm.get_id())
         if int_worm:
-            if attack > EPS or attack < -EPS: # if worm decided to attack
+            if attack == 0: # if worm decided to attack
                 old_health = int_worm.get_health()
                 new_health = old_health - WORM_DAMAGE
                 int_worm.set_health(new_health)
@@ -225,7 +226,7 @@ class Thread:
             worm.set_health(new_health)
             worm.set_saturation(100.)
             self.stats['food_eaten'] += 1
-            if attack > EPS: # if worm decided to attack
+            if attack == 0: # if worm decided to attack
                 int_food.eat() # food gets double hit
                 self.stats['food_eaten'] += 1
 
@@ -241,7 +242,7 @@ class Thread:
             new_health = old_health - SPIKE_DAMAGE
             worm.set_health(new_health)
             self.stats['spikes_hit'] += 1
-            if attack > EPS: # if worm decided to attack
+            if attack == 0: # if worm decided to attack
                 int_spike.hit() # spike gets double hit
 
     def _environment_interaction(self, worm, attack):
@@ -319,15 +320,22 @@ class Thread:
         global_inadequacy = max(1. - self.params['tick']/float(self.params['global_adequacy_span']*self.params['world_lifespan']), 0.)
         worm_adequacy = self.params['worm_adequacy'] + worm_expirience - global_inadequacy
         if odds > worm_adequacy: # time for crazy actions
-            crazy_action = npr.uniform(0, 1, 3)
+            crazy_action = npr.randint(0, 18)
             self.stats['crazy_actions'] += 1
             return crazy_action
         return action
 
+    def _extract_actions(self, action):
+        move = action // 6
+        turn = (action % 6) // 2
+        attack = action % 2
+        return move, turn, attack
+
     def _learn(self):
         if self.params['tick'] % self.params['learn_freq'] == 0:
             for worm in self.colony:
-                worm.learn(self.params['tick'])
+                self.stats['loss'] += worm.learn(self.params['tick'])
+            self.stats['loss'] /= len(self.colony)
 
     def _breed(self, worm):
         if worm.get_time() < self.params['breeding_age'] or worm.did_bred() or worm.get_saturation() < self.params['breed_sat_barrier']:
@@ -374,8 +382,9 @@ class Thread:
                 worm_view = self._normalize_worm_view(worm_view)
                 action = worm(worm_view) # feed worm view to worm
                 action = self._epsilon_rand(action, worm.get_time())
-                attack = action[2]
-                worm_position = self._update_worm_position(worm_position, action)
+                move, turn, attack = self._extract_actions(action)
+                movement = (move, turn)
+                worm_position = self._update_worm_position(worm_position, movement)
                 worm.set_position(*worm_position)
                 self._colony_interaction(worm, attack)
                 self._environment_interaction(worm, attack)
@@ -400,6 +409,29 @@ class Thread:
         self._generate_init_spikes()
         self._generate_init_food()
 
+    def show_params(self):
+        hparams = self.params.copy()
+        hparams['WORM_LENGTH'] = WORM_LENGTH
+        hparams['MEMORY_SIZE'] = WORM_MEMORY_SIZE
+        hparams['WORM_RECURRENT_VIEW'] = WORM_RECURRENT_VIEW
+        hparams['INITIAL_LR'] = INITIAL_LR
+        hparams['LEARN_BATCH_SIZE'] = LEARN_BATCH_SIZE
+        hparams['HEALTH_COEF'] = HEALTH_COEF
+        hparams['SATURATION_COEF'] = SATURATION_COEF
+        hparams['BREEDING_COEF'] = BREEDING_COEF
+        hparams['AGE_ACTIVITY'] = AGE_ACTIVITY
+        hparams['FOOD_RESTORATION'] = FOOD_RESTORATION
+        hparams['SPIKE_DAMAGE'] = SPIKE_DAMAGE
+        hparams['SPIKE_DAMAGE_AOE'] = SPIKE_DAMAGE_AOE
+        hparams['WORM_DAMAGE'] = WORM_DAMAGE
+        hparams['STARVATION_DAMAGE_THRESHOLD'] = STARVATION_DAMAGE_THRESHOLD
+        hparams['STARVATION_DAMAGE'] = STARVATION_DAMAGE
+        hparams['SATURATION_HEAL_THRESHOLD'] = SATURATION_HEAL_THRESHOLD
+        hparams['SATURATION_HEAL'] = SATURATION_HEAL
+        hparams['SATURATION_TICK_REDUCTION'] = SATURATION_TICK_REDUCTION
+        hparams['RENDER_DELAY'] = RENDER_DELAY
+        self.visual.show_params(hparams)
+
     def start(self):
         self._run()
 
@@ -417,4 +449,5 @@ if __name__ == "__main__":
                 print('-< %s has been set to True\n' % (cmd_params[key[2:]]))
     main = Thread(thread_params)
     main.generate()
+    main.show_params()
     main.start()

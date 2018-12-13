@@ -18,9 +18,34 @@ class Visual:
             cv2.resizeWindow('Frame', self.width, self.height)
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
         if self.params['save_recap']:
-            self.out = cv2.VideoWriter('./recaps/%s.avi' % str(time.time()), fourcc, self.params['fps'], (3*self.width, 3*self.height))
+            self.out = cv2.VideoWriter('./recaps/%s.avi' % str(time.time()), fourcc, self.params['fps'], (3*self.width, 5*self.height))
         self.stats = {}
         self.long_stats = {}
+
+    def show_params(self, hparams):
+        self.params_frame = np.zeros((5*self.height, 3*self.width, 3), np.uint8)
+        self.params_frame.fill(255)
+        v_offset = 0.1*5*self.height
+        h_offset = 0.1*3*self.width
+        block_height = 0.8*2*3*self.height/float(len(hparams))
+        font = cv2.FONT_HERSHEY_PLAIN
+        font_size = 2#self.height/float(6*110)
+        for i, param_name in enumerate(hparams):
+            if i % 2 == 0:
+                cv2.putText(self.params_frame, '%s = %s' % (param_name, str(hparams[param_name])),
+                                            (int(h_offset), int(v_offset + i*block_height)),
+                                            font, font_size, (0, 0, 0), 2, cv2.LINE_AA)
+            else:
+                cv2.putText(self.params_frame, '%s = %s' % (param_name, str(hparams[param_name])),
+                                            (int(0.5*3*self.width + h_offset), int(v_offset + (i-1)*block_height)),
+                                            font, font_size, (0, 0, 0), 2, cv2.LINE_AA)
+        if self.params['save_recap']:
+            for i in range(self.params['fps']*2):
+                self.out.write(self.params_frame)
+        if self.params['debug_show']:
+            cv2.imshow('Frame', self.params_frame)
+            cv2.waitKey(10*RENDER_DELAY)
+
 
     def show(self, colony, environment, stats):
         self.colony = colony
@@ -53,7 +78,7 @@ class Visual:
             draw_color = self.params['spike_draw_color']
             if isinstance(el, Food):
                 draw_color = self.params['food_draw_color']
-            cv2.rectangle(self.frame, (x1, y1), (x2, y2), draw_color, 3)
+            cv2.rectangle(self.frame, (x1, y1), (x2, y2), draw_color, -1)
         for w in self.colony:
             worm_position = w.get_position()
             worm_x, worm_y, orient = worm_position[:]
@@ -61,7 +86,7 @@ class Visual:
             x2 = (worm_x+1)*self.params['width_scale']
             y1 = worm_y*self.params['height_scale']
             y2 = (worm_y+1)*self.params['height_scale']
-            cv2.rectangle(self.frame, (x1, y1), (x2, y2), self.params['worm_draw_color'], 3)
+            cv2.rectangle(self.frame, (x1, y1), (x2, y2), self.params['worm_draw_color'], -1)
 
     def show_stats(self):
         self.stats_frame = np.zeros((self.height, 2*self.width, 3), np.uint8)
@@ -156,48 +181,56 @@ class Visual:
     def show_graphs(self):
         if self.stats['time'] == 1:
             return
-        self.graphs_frame = np.zeros((2*self.height, 3*self.width, 3), np.uint8)
+        self.graphs_frame = np.zeros((4*self.height, 3*self.width, 3), np.uint8)
         self.graphs_frame.fill(255)
         bd_frame = {
             'name' : 'Birth-death-population',
             'y1' : 0,
-            'y2' : 2*self.height // 5,
+            'y2' : 4*self.height // 6,
             'names' : ['breedings', 'deaths', 'population'],
             'colors' : [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
         }
         fs_frame = {
             'name' : 'Food-spike hits',
-            'y1' : 2*self.height // 5,
-            'y2' : 2*2*self.height // 5,
+            'y1' : 4*self.height // 6,
+            'y2' : 2*4*self.height // 6,
             'names' : ['food_eaten', 'spikes_hit'],
             'colors' : [self.params['food_draw_color'], self.params['spike_draw_color']]
         }
         res_frame = {
             'name' : 'Resources',
-            'y1' : 2*2*self.height // 5,
-            'y2' : 3*2*self.height // 5,
+            'y1' : 2*4*self.height // 6,
+            'y2' : 3*4*self.height // 6,
             'names' : ['food_amount', 'spikes_amount'],
             'colors' : [self.params['food_draw_color'], self.params['spike_draw_color']]
         }
         spawn_frame = {
             'name' : 'Food-spike spawns',
-            'y1' : 3*2*self.height // 5,
-            'y2' : 4*2*self.height // 5,
+            'y1' : 3*4*self.height // 6,
+            'y2' : 4*4*self.height // 6,
             'names' : ['food_spawned', 'spikes_spawned'],
             'colors' : [self.params['food_draw_color'], self.params['spike_draw_color']]
         }
         crazy_frame = {
             'name' : 'Crazy actions-attacks-population',
-            'y1' : 4*2*self.height // 5,
-            'y2' : 2*self.height,
+            'y1' : 4*4*self.height // 6,
+            'y2' : 5*4*self.height // 6,
             'names' : ['crazy_actions', 'attacks', 'population'],
             'colors' : [(13, 92, 180), (0, 0, 255), (255, 0, 0)]
+        }
+        loss_frame = {
+            'name' : 'Loss',
+            'y1' : 5*4*self.height // 6,
+            'y2' : 4*self.height,
+            'names' : ['loss'],
+            'colors' : [(0, 61, 150)]
         }
         self.show_graph(bd_frame)
         self.show_graph(fs_frame)
         self.show_graph(spawn_frame)
         self.show_graph(crazy_frame)
         self.show_graph(res_frame)
+        self.show_graph(loss_frame)
         self.frame = np.concatenate((self.frame, self.graphs_frame), axis=0)
 
     def show_graph(self, frame):
@@ -208,12 +241,23 @@ class Visual:
         block_width = 3*0.90*self.width/float(self.stats['world_lifespan'])
         offset = int(3*0.05*self.width)
         font_size = block_height/float(440)
+        legend_width = 3*0.2*self.width
+        rect_width = 3*0.05*self.width
+        legend_block_height = block_height/float(len(frame['names']))
         bottom_offset = int((frame['y2'] - frame['y1'])*0.05)
         cv2.putText(self.graphs_frame, frame['name'], (int(3*0.1*self.width),
                                                     frame['y1'] + int(0.1*block_height)),
                                                     font, font_size, (0, 0, 0), 2, cv2.LINE_AA)
         top = 0
-        for name in frame['names']:
+        for i, name in enumerate(frame['names']):
+            cv2.rectangle(self.graphs_frame, (int(3*self.width - legend_width),
+                                               int(frame['y1'] + 0.1*(frame['y2'] - frame['y1']) + legend_block_height*i)),
+                                             (int(3*self.width - legend_width + rect_width),
+                                               int(frame['y1'] + 0.1*(frame['y2'] - frame['y1']) + legend_block_height*(i+1))),
+                                             frame['colors'][i], -1)
+            cv2.putText(self.graphs_frame, '  - %s' % name, (int(3*self.width - legend_width + rect_width),
+                                                             int(frame['y1'] + 0.1*(frame['y2'] - frame['y1']) + legend_block_height*(i + 0.5))),
+                                                             font, font_size, (0, 0, 0), 2, cv2.LINE_AA)
             top = max(top, max(self.long_stats[name]))
         if top == 0:
             top = 100
