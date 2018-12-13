@@ -66,7 +66,7 @@ class Worm:
                         target[act_id][0] = 1
                     elif act[act_id] >= -EPS: # Stagnation penalty
                         target[act_id][0] = npr.randint(0, 2)
-                lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/((1 + (self.time**2))*global_tick)
+                lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/((self.time)*global_tick)
                 for param_group in self.optimizer.param_groups:
                     param_group['lr'] = lr
 
@@ -86,7 +86,7 @@ class Worm:
                         target[act_id][0] = 0
                     elif act[act_id] >= -EPS: # Stagnation encouraging
                         target[act_id][0] = -1
-                lr = max(INITIAL_LR  - reward/float(100), 0.)*float(AGE_ACTIVITY)/((1 + (self.time**2))*global_tick)
+                lr = max(INITIAL_LR  - reward/float(100), 0.)*float(AGE_ACTIVITY)/((self.time)*global_tick)
                 for param_group in self.optimizer.param_groups:
                     param_group['lr'] = lr
 
