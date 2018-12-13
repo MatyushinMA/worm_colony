@@ -54,6 +54,7 @@ RENDER_DELAY = 50 # Render delay when visual debug show ms
 
 # DEFAULT PARAMS MANIPULATION
 thread_params = { # You can set the params here directly
+    'world_name' : 'DEFAULT',
     'worms_init_number' : 100,
     'food_init_number' : 500,
     'spike_init_number' : 5,
@@ -92,6 +93,7 @@ thread_params = { # You can set the params here directly
 
 # DESCRIPTION TABLE
 cmd_params = { # Or you can start Thread.py with parameters from this list, the second string is the description (all flags start with --)
+    'world-name=' : 'Name of the world configuration (string)',
     'worms-init-num=' : 'Initial amount of worms (int)',
     'food-init-num=' : 'Initial amount of food (int)',
     'spike-init-num=' : 'Initial amount of spikes (int)',
@@ -126,6 +128,7 @@ cmd_params = { # Or you can start Thread.py with parameters from this list, the 
     'visual-fps=' : 'FPS rate in video recap (int)'}
 
 cmd_to_thread = { # INTERNAL USAGE ONLY
+    'world-name' : 'world_name',
     'worms-init-num' : 'worms_init_number',
     'food-init-num' : 'food_init_number',
     'spike-init-num' : 'spike_init_number',

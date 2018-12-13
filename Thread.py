@@ -441,7 +441,10 @@ if __name__ == "__main__":
     for key, value in opts:
         if key[2:] in cmd_to_thread.keys():
             param_name = cmd_to_thread[key[2:]]
-            if value:
+            if param_name == 'world_name':
+                thread_params[param_name] = value
+                print('-< %s has been set to %s\n' % (cmd_params[key[2:] + "="], str(value)))
+            elif value:
                 thread_params[param_name] = int(value)
                 print('-< %s has been set to %s\n' % (cmd_params[key[2:] + "="], str(value)))
             else:

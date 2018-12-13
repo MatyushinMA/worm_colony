@@ -30,6 +30,8 @@ class Visual:
         block_height = 0.8*2*3*self.height/float(len(hparams))
         font = cv2.FONT_HERSHEY_PLAIN
         font_size = 2#self.height/float(6*110)
+        cv2.putText(self.params_frame, hparams['world_name'], (int(0.5*3*self.width - h_offset), int(v_offset*0.5)),
+                        font, 2*font_size, (140, 32, 64), 2, cv2.LINE_AA)
         for i, param_name in enumerate(hparams):
             if i % 2 == 0:
                 cv2.putText(self.params_frame, '%s = %s' % (param_name, str(hparams[param_name])),
