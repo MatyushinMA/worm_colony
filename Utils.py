@@ -61,7 +61,7 @@ thread_params = { # You can set the params here directly
     'spike_spawn_time' : 100,
     'food_spawn_time' : 50,
     'worm_spawn_time' : 10000,
-    'spike_spawn_amount' : 5,
+    'spike_spawn_amount' : 10,
     'food_spawn_amount' : 500,
     'worm_spawn_amount' : 0,
     'world_width' : 100,

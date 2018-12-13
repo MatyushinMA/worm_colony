@@ -153,7 +153,7 @@ class Visual:
                                             font, font_size, (0, 0, 0), 2, cv2.LINE_AA)
         cv2.putText(self.stats_frame, '%d' % frame['max_value'], (int(0.95*2*self.width), frame['y2'] - title),
                                             font, font_size, (0, 0, 0), 2, cv2.LINE_AA)
-        top_value = sum(distribution)
+        top_value = max(distribution)
         if top_value == 0:
             cv2.rectangle(self.stats_frame, (int(block_width), frame['y2'] - 2*title),
                                             (int(block_width*len(distribution)), frame['y2'] - 2*title),
@@ -185,48 +185,56 @@ class Visual:
             return
         self.graphs_frame = np.zeros((4*self.height, 3*self.width, 3), np.uint8)
         self.graphs_frame.fill(255)
-        bd_frame = {
-            'name' : 'Birth-death-population',
+        population_frame = {
+            'name' : 'Population',
             'y1' : 0,
-            'y2' : 4*self.height // 6,
-            'names' : ['breedings', 'deaths', 'population'],
-            'colors' : [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
+            'y2' : 4*self.height // 7,
+            'names' : ['population'],
+            'colors' : [(255, 0, 0)]
+        }
+        bd_frame = {
+            'name' : 'Birth-death',
+            'y1' : 4*self.height // 7,
+            'y2' : 2*4*self.height // 7,
+            'names' : ['breedings', 'deaths'],
+            'colors' : [(0, 255, 0), (0, 0, 255)]
         }
         fs_frame = {
             'name' : 'Food-spike hits',
-            'y1' : 4*self.height // 6,
-            'y2' : 2*4*self.height // 6,
+            'y1' : 2*4*self.height // 7,
+            'y2' : 3*4*self.height // 7,
             'names' : ['food_eaten', 'spikes_hit'],
             'colors' : [self.params['food_draw_color'], self.params['spike_draw_color']]
         }
         res_frame = {
             'name' : 'Resources',
-            'y1' : 2*4*self.height // 6,
-            'y2' : 3*4*self.height // 6,
+            'y1' : 3*4*self.height // 7,
+            'y2' : 4*4*self.height // 7,
             'names' : ['food_amount', 'spikes_amount'],
             'colors' : [self.params['food_draw_color'], self.params['spike_draw_color']]
         }
         spawn_frame = {
             'name' : 'Food-spike spawns',
-            'y1' : 3*4*self.height // 6,
-            'y2' : 4*4*self.height // 6,
+            'y1' : 4*4*self.height // 7,
+            'y2' : 5*4*self.height // 7,
             'names' : ['food_spawned', 'spikes_spawned'],
             'colors' : [self.params['food_draw_color'], self.params['spike_draw_color']]
         }
         crazy_frame = {
             'name' : 'Crazy actions-attacks-population',
-            'y1' : 4*4*self.height // 6,
-            'y2' : 5*4*self.height // 6,
+            'y1' : 5*4*self.height // 7,
+            'y2' : 6*4*self.height // 7,
             'names' : ['crazy_actions', 'attacks', 'population'],
             'colors' : [(13, 92, 180), (0, 0, 255), (255, 0, 0)]
         }
         loss_frame = {
             'name' : 'Loss',
-            'y1' : 5*4*self.height // 6,
+            'y1' : 6*4*self.height // 7,
             'y2' : 4*self.height,
             'names' : ['loss'],
             'colors' : [(0, 61, 150)]
         }
+        self.show_graph(population_frame)
         self.show_graph(bd_frame)
         self.show_graph(fs_frame)
         self.show_graph(spawn_frame)

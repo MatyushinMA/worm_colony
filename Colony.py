@@ -1,6 +1,8 @@
 from Worm import Worm
 from Utils import ORIENTATIONS, WORM_LENGTH
 
+import umsgpack
+
 class Colony:
     def __init__(self, max_time, max_power=100):
         self._iter = 0
@@ -38,7 +40,7 @@ class Colony:
                 self.act_worms -= 1
                 return True
         return False
-    
+
     def tail_position(self, x, y, orient):
         if orient == ORIENTATIONS['top']:
             return (x, y-WORM_LENGTH+1)
@@ -49,7 +51,7 @@ class Colony:
         if orient == ORIENTATIONS['left']:
             return (x+WORM_LENGTH-1, y)
         return (x, y)
-    
+
     def get_worm_by_position(self, x, y, except_for=-1):
         # TODO: Get worm by tail too == IS READY
         for w in self.worms:
@@ -141,3 +143,23 @@ class Colony:
             return res
         elif isinstance(id, int):
             return self._kill_worm_by_id(id)
+
+    def load(self, path):
+        serialized_weights = {}
+        with open(path, 'rb') as f:
+            serialized_weights = umsgpack.unpack(f)
+        for worm_weights in serialized_weights:
+            worm_position = worm_weights.pop('_position')
+            self.emplace_worm(worm_position[0], worm_position[1], worm_position[2], worm_weights)
+
+    def serialize(self, path):
+        all_weights = []
+        for w in self.worms:
+            sd = w.get_state_dict()
+            worm_weights = {'_position' : w.get_position()}
+            for k in sd:
+                weight = sd[k].numpy()
+                worm_weights[k] = weight
+            all_weights.append(worm_weights)
+        with open(path, 'wb') as f:
+            umsgpack.pack(all_weights, f)
