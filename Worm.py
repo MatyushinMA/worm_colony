@@ -26,7 +26,7 @@ class Worm:
         if weights:
             self.net.load_state_dict(weights)
         self.storage = Storage(WORM_MEMORY_SIZE)
-        self.optimizer = torch.optim.Adam(self.net.parameters(), INITIAL_LR)
+        self.optimizer = torch.optim.SGD(self.net.parameters(), INITIAL_LR)
         self.good_loss_fn = nn.CrossEntropyLoss()
         self.bad_loss_fn = nn.MSELoss()
         self.x = x
@@ -71,9 +71,9 @@ class Worm:
         for view, feed_view, act, state in learn_batch:
             reward = HEALTH_COEF*state['health'] + SATURATION_COEF*state['saturation'] + BREEDING_COEF*int(self.bred)
             if reward <= 0:
-                '''lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/((self.time)*global_tick)
+                lr = (INITIAL_LR  - reward/float(1000))*(float(AGE_ACTIVITY)/self.time)*(0.1**(global_tick // 330))
                 for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = lr'''
+                    param_group['lr'] = lr
                 target = np.argmax(act.numpy()[0, 0, 0, :])
                 tensor_target = torch.zeros([1])
                 prob = self.net(feed_view)
@@ -83,9 +83,9 @@ class Worm:
                 loss.backward()
                 self.optimizer.step()
             else:
-                '''lr = max(INITIAL_LR  - reward/float(100), 0.)*float(AGE_ACTIVITY)/((self.time)*global_tick)
+                lr = max(INITIAL_LR  - reward/float(1000), 0.)*(float(AGE_ACTIVITY)/self.time)*(0.1**(global_tick // 330))
                 for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = lr'''
+                    param_group['lr'] = lr
                 target = np.argmax(act.numpy()[0, 0, 0, :])
                 tensor_target = torch.ones([1], dtype=torch.long)
                 tensor_target[0] = target

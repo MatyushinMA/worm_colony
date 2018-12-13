@@ -4,6 +4,7 @@
 # Release info:
 ## Hyperparameters, you can set in Utils.py:
 * WORM_MEMORY_SIZE - Size of worm's memory storage. / Длина памяти червя.
+* WORM_RECURRENT_VIEW - Number of frames worm can view from the past. / Количество фреймов, которое червь видит из прошлого.
 * INITIAL_LR - Initial learning rate. / Начальный learning_rate.
 * LEARN_BATCH_SIZE - Batch size for learning. / Размер батча для обучения.
 * HEALTH_COEF - Coefficient for health in reward formula. / Коэффициент здоровья в формуле награды.
@@ -25,9 +26,10 @@
 ## Reward formula:
 ### reward = HEALTH_COEF\*delta_health + SATURATION_COEF\*delta_saturation + BREEDING_COEF\*int(self.bred)
 ## Learning rate formula:
-### lr = (INITIAL_LR  - reward/float(100))\*float(AGE_ACTIVITY)/((1 + (self.time\*\*2))\*global_tick)
+### lr = max(INITIAL_LR  - reward/float(1000), 0.)\*(float(AGE_ACTIVITY)/self.time)\*(0.1**(global_tick // 330))
 
 ## Hyperparamters, you can set from cmd:
+* --world-name= - Name of the world configuration showed at the beginning of the recap (string). / Имя конфигурации, показываемое в начале видео.
 * --worms-init-num= - Initial amount of worms (int). / Начальное количество червей.
 * --food-init-num= - Initial amount of food (int). / Начальное количество еды.
 * --spike-init-num= - Initial amount of spikes (int). / Начальное количество колючек.
@@ -74,3 +76,4 @@
 * spikes_hit - Amount of hits by spikes. / Число срабатываний колючек.
 * food_spawned - Amount of food spawned. / Количество заспавненной еды.
 * spiked_spawned - Amount of spikes spawned. / Количество заспавненных колючек.
+* loss - Average loss in population. / Средний loss по колонии.
