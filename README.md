@@ -32,13 +32,13 @@
 * --world-name= - Name of the world configuration showed at the beginning of the recap (string). / Имя конфигурации, показываемое в начале видео.
 * --worms-init-num= - Initial amount of worms (int). / Начальное количество червей.
 * --food-init-num= - Initial amount of food (int). / Начальное количество еды.
-* --spike-init-num= - Initial amount of spikes (int). / Начальное количество колючек.
-* --worm-spawn-time= - Time for spawn new worms (int). / Время спавна новых червей.
+* --spikes-init-num= - Initial amount of spikes (int). / Начальное количество колючек.
+* --worms-spawn-time= - Time for spawn new worms (int). / Время спавна новых червей.
 * --food-spawn-time= - Time for spawn new food (int). /  Время спавна новой еды.
-* --spike-spawn-time - Time for spawn new spikes (int). / Время спавна новых колючек.
-* --worm-spawn-amount= - Amount of new worms to be spawned (int). / Количество новых спавнящихся червей.
+* --spikes-spawn-time - Time for spawn new spikes (int). / Время спавна новых колючек.
+* --worms-spawn-amount= - Amount of new worms to be spawned (int). / Количество новых спавнящихся червей.
 * --food-spawn-amount= - Amount of new food to be spawned (int). /  Количество новой спавнящейся еды.
-* --spike-spawn-amount= - Amount of new spikes to be spawned (int). / Количество новых спавнящихся колючек.
+* --spikes-spawn-amount= - Amount of new spikes to be spawned (int). / Количество новых спавнящихся колючек.
 * --world-width= - Width of the world (int). / Ширина мира.
 * --world-height= - Height of the world (int). / Высота мира.
 * --learning - Whether to learn worms. / Обучать ли червей.
@@ -62,6 +62,9 @@
 * --visual-debug-show - Whether to show debug visual picture. / Показывать ли отладочную визуализацию.
 * --visual-save-recap - Whether to save video recap. /  Сохранять ли видеозапись эксперимента.
 * --visual-fps= - FPS rate in video recap (int). / Количество FPS в видеозаписи (больше = быстрее).
+* --save-configuration - Whether to save worms configuration at the end of emulation. / Сохранять ли конфигурацию червей в конце эмуляции.
+* --load-configuration= - Path to binary worms configuration (string). / Путь к файлу с загружаемой конфигурацией червей.
+* --load-map= - Path to map of the world (string). / Путь к файлу с загружаемой картой мира.
 
 ## Stats description:
 * time - Time from the start of the world. / Время, прошедшее с момента старта мира.
@@ -75,5 +78,5 @@
 * food_eaten - Amount of hits to food. / Число съеденной еды (число укусов).
 * spikes_hit - Amount of hits by spikes. / Число срабатываний колючек.
 * food_spawned - Amount of food spawned. / Количество заспавненной еды.
-* spiked_spawned - Amount of spikes spawned. / Количество заспавненных колючек.
+* spikes_spawned - Amount of spikes spawned. / Количество заспавненных колючек.
 * loss - Average loss in population. / Средний loss по колонии.
