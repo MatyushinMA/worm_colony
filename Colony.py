@@ -3,6 +3,8 @@ from Utils import ORIENTATIONS, WORM_LENGTH
 
 import torch
 import umsgpack
+import numpy as np
+import numpy.random as npr
 
 class Colony:
     def __init__(self, max_time, max_power=100):
@@ -145,12 +147,14 @@ class Colony:
         elif isinstance(id, int):
             return self._kill_worm_by_id(id)
 
-    def load(self, path):
+    def load(self, path, area=np.empty(0)):
         serialized_weights = {}
         with open(path, 'rb') as f:
             serialized_weights = umsgpack.unpack(f)
         for worm_weights in serialized_weights:
             worm_position = worm_weights.pop('_position')
+            if area:
+                worm_position = (npr.choice(area[1]), npr.choice(area[0]), npr.randint(4))
             for weight_name in worm_weights:
                 worm_weights[weight_name] = torch.Tensor(worm_weights[weight_name])
             self.emplace_worm(worm_position[0], worm_position[1], worm_position[2], worm_weights)

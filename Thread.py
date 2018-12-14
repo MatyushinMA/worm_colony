@@ -1,5 +1,6 @@
 import sys, getopt
 import numpy as np
+import cv2
 import math
 import numpy.random as npr
 import time
@@ -23,21 +24,7 @@ class Thread:
 
         env_max_times = {'spike' : params['spike_lifespan'], 'food' : params['food_lifespan']}
         self.environment = Environment(env_max_times)
-
         self.colony = Colony(params['worm_lifespan'])
-
-        visual_params = {
-            'world_width' : self.params['world_width'],
-            'world_height' : self.params['world_height'],
-            'width_scale' : self.params['visual_width_scale'],
-            'height_scale' : self.params['visual_height_scale'],
-            'worm_draw_color' : self.params['visual_worm_draw_color'],
-            'spike_draw_color' : self.params['visual_spike_draw_color'],
-            'food_draw_color' : self.params['visual_food_draw_color'],
-            'fps' : self.params['visual_fps'],
-            'debug_show' : self.params['visual_debug_show'],
-            'save_recap' : self.params['visual_save_recap']}
-        self.visual = Visual(visual_params)
 
     def _generate_init_worms(self):
         worms_params_x = npr.randint(0, self.params['world_width'], self.params['worms_init_number'])
@@ -405,18 +392,46 @@ class Thread:
                 sleep(RENDER_DELAY*(10**(-3)))
         self.visual.clear()
 
-    def load(self):
-        self.colony.load(self.params['load_configuration'])
+    def _load_configuration(self):
+        self.colony.load(self.params['load_configuration'], self.worm_map)
 
-    def save(self):
+    def _load_map(self):
+        map = cv2.imread(self.params['load_map'])
+        self.params['world_width'] = map.shape[1]
+        self.params['world_height'] = map.shape[0]
+        self.worm_map = np.where(np.logical_and(np.logical_and(map[:,:,0] > 230, map[:,:,1] < 50), map[:,:,2] < 50))
+        if np.all(self.worm_map == False):
+            self.worm_map = np.empty(0)
+        food_map = np.where(np.logical_and(np.logical_and(map[:,:,0] < 50, map[:,:,1] > 230), map[:,:,2] < 50))
+        spikes_map = np.where(np.logical_and(np.logical_and(map[:,:,0] < 50, map[:,:,1] < 50), map[:,:,2] > 230))
+        for y, x in zip(food_map[0], food_map[1]):
+            self.environment.emplace_food(x, y)
+        for y, x in zip(spikes_map[0], spikes_map[1]):
+            self.environment.emplace_spike(x, y)
+
+    def _save(self):
         self.colony.serialize('./configurations/%s-%s.bin' % (self.params['world_name'], str(time.time())))
 
-    def generate(self):
+    def _generate(self):
         self._generate_init_worms()
         self._generate_init_spikes()
         self._generate_init_food()
 
-    def show_params(self):
+    def _configure_visual(self):
+        visual_params = {
+            'world_width' : self.params['world_width'],
+            'world_height' : self.params['world_height'],
+            'width_scale' : self.params['visual_width_scale'],
+            'height_scale' : self.params['visual_height_scale'],
+            'worm_draw_color' : self.params['visual_worm_draw_color'],
+            'spike_draw_color' : self.params['visual_spike_draw_color'],
+            'food_draw_color' : self.params['visual_food_draw_color'],
+            'fps' : self.params['visual_fps'],
+            'debug_show' : self.params['visual_debug_show'],
+            'save_recap' : self.params['visual_save_recap']}
+        self.visual = Visual(visual_params)
+
+    def _show_params(self):
         hparams = self.params.copy()
         hparams['WORM_LENGTH'] = WORM_LENGTH
         hparams['MEMORY_SIZE'] = WORM_MEMORY_SIZE
@@ -440,11 +455,16 @@ class Thread:
         self.visual.show_params(hparams)
 
     def start(self):
+        if self.params['load_map']:
+            self._load_map()
         if self.params['load_configuration']:
-            self.load()
+            self._load_configuration()
+        self._configure_visual()
+        self._show_params()
+        self._generate()
         self._run()
         if self.params['save_configuration']:
-            self.save()
+            self._save()
 
 
 if __name__ == "__main__":
@@ -452,7 +472,7 @@ if __name__ == "__main__":
     for key, value in opts:
         if key[2:] in cmd_to_thread.keys():
             param_name = cmd_to_thread[key[2:]]
-            if param_name == 'world_name' or param_name == 'load_configuration':
+            if param_name == 'world_name' or param_name == 'load_configuration' or param_name == 'load_map':
                 thread_params[param_name] = value
                 print('-< %s has been set to %s\n' % (cmd_params[key[2:] + "="], str(value)))
             elif value:
@@ -465,6 +485,4 @@ if __name__ == "__main__":
                 thread_params[param_name] = True
                 print('-< %s has been set to True\n' % (cmd_params[key[2:]]))
     main = Thread(thread_params)
-    main.generate()
-    main.show_params()
     main.start()
