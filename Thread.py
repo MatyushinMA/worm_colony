@@ -85,7 +85,7 @@ class Thread:
             'spikes_spawned' : 0,
             'loss' : 0.
         }
-        print('TIME: %d\nPOPULATION: %d\n%s' % (self.params['tick'], self.params['population'], '-'*80))
+        print('TIME: %d\nPOPULATION: %d\n%s' % (self.stats['time'], self.stats['population'], '-'*80))
 
     def _is_alive(self):
         if len(self.colony) == 0:
