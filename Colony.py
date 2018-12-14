@@ -154,7 +154,8 @@ class Colony:
         for worm_weights in serialized_weights:
             worm_position = worm_weights.pop('_position')
             if area:
-                worm_position = (npr.choice(area[1]), npr.choice(area[0]), npr.randint(4))
+                pos_id = npr.randint(len(area[0]))
+                worm_position = (area[1][pos_id], area[0][pos_id], npr.randint(4))
             for weight_name in worm_weights:
                 worm_weights[weight_name] = torch.Tensor(worm_weights[weight_name])
             self.emplace_worm(worm_position[0], worm_position[1], worm_position[2], worm_weights)

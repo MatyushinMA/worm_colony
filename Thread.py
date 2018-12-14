@@ -1,7 +1,7 @@
 import sys, getopt
-import numpy as np
 import cv2
 import math
+import numpy as np
 import numpy.random as npr
 import time
 from time import sleep
@@ -26,6 +26,10 @@ class Thread:
         self.environment = Environment(env_max_times)
         self.colony = Colony(params['worm_lifespan'])
 
+        self.worm_map = np.empty(0)
+        self.food_map = np.empty(0)
+        self.spikes_map = np.empty(0)
+
     def _generate_init_worms(self):
         worms_params_x = npr.randint(0, self.params['world_width'], self.params['worms_init_number'])
         worms_params_y = npr.randint(0, self.params['world_height'], self.params['worms_init_number'])
@@ -33,15 +37,23 @@ class Thread:
         for _ in range(self.params['worms_init_number']):
             x = worms_params_x[_]
             y = worms_params_y[_]
+            if self.worm_map:
+                pos_id = npr.randint(len(self.worm_map[0]))
+                x = self.worm_map[1][pos_id]
+                y = self.worm_map[0][pos_id]
             orient = worms_params_orient[_]
             self.colony.emplace_worm(x, y, orient)
 
     def _generate_init_spikes(self):
-        spike_params_x = npr.randint(0, self.params['world_width'], self.params['spike_init_number'])
-        spike_params_y = npr.randint(0, self.params['world_height'], self.params['spike_init_number'])
-        for _ in range(self.params['spike_init_number']):
+        spike_params_x = npr.randint(0, self.params['world_width'], self.params['spikes_init_number'])
+        spike_params_y = npr.randint(0, self.params['world_height'], self.params['spikes_init_number'])
+        for _ in range(self.params['spikes_init_number']):
             x = spike_params_x[_]
             y = spike_params_y[_]
+            if self.spikes_map:
+                pos_id = npr.randint(len(self.spikes_map[0]))
+                x = self.spikes_map[1][pos_id]
+                y = self.spikes_map[0][pos_id]
             self.environment.emplace_spike(x, y)
 
     def _generate_init_food(self):
@@ -50,6 +62,10 @@ class Thread:
         for _ in range(self.params['food_init_number']):
             x = food_params_x[_]
             y = food_params_y[_]
+            if self.food_map:
+                pos_id = npr.randint(len(self.food_map[0]))
+                x = self.food_map[1][pos_id]
+                y = self.food_map[0][pos_id]
             self.environment.emplace_food(x, y)
 
     def _tick(self):
@@ -238,8 +254,8 @@ class Thread:
         self._food_interaction(worm, attack)
 
     def _spawn_spike(self):
-        if self.params['tick'] % self.params['spike_spawn_time'] == 0:
-            for _ in range(self.params['spike_spawn_amount']):
+        if self.params['tick'] % self.params['spikes_spawn_time'] == 0:
+            for _ in range(self.params['spikes_spawn_amount']):
                 x_pos = npr.randint(0, self.params['world_width'])
                 y_pos = npr.randint(0, self.params['world_height'])
                 self.environment.emplace_spike(x_pos, y_pos)
@@ -254,8 +270,8 @@ class Thread:
                 self.stats['food_spawned'] += 1
 
     def _spawn_worm(self):
-        if self.params['tick'] % self.params['worm_spawn_time'] == 0:
-            for _ in range(self.params['worm_spawn_amount']):
+        if self.params['tick'] % self.params['worms_spawn_time'] == 0:
+            for _ in range(self.params['worms_spawn_amount']):
                 x_pos = npr.randint(0, self.params['world_width'])
                 y_pos = npr.randint(0, self.params['world_height'])
                 orient = npr.randint(0, 4)
@@ -402,12 +418,12 @@ class Thread:
         self.worm_map = np.where(np.logical_and(np.logical_and(map[:,:,0] > 230, map[:,:,1] < 50), map[:,:,2] < 50))
         if np.all(self.worm_map == False):
             self.worm_map = np.empty(0)
-        food_map = np.where(np.logical_and(np.logical_and(map[:,:,0] < 50, map[:,:,1] > 230), map[:,:,2] < 50))
-        spikes_map = np.where(np.logical_and(np.logical_and(map[:,:,0] < 50, map[:,:,1] < 50), map[:,:,2] > 230))
-        for y, x in zip(food_map[0], food_map[1]):
-            self.environment.emplace_food(x, y)
-        for y, x in zip(spikes_map[0], spikes_map[1]):
-            self.environment.emplace_spike(x, y)
+        self.food_map = np.where(np.logical_and(np.logical_and(map[:,:,0] < 50, map[:,:,1] > 230), map[:,:,2] < 50))
+        if np.all(self.food_map == False):
+            self.food_map = np.empty(0)
+        self.spikes_map = np.where(np.logical_and(np.logical_and(map[:,:,0] < 50, map[:,:,1] < 50), map[:,:,2] > 230))
+        if np.all(self.spikes_map == False):
+            self.spikes_map = np.empty(0)
 
     def _save(self):
         self.colony.serialize('./configurations/%s-%s.bin' % (self.params['world_name'], str(time.time())))
