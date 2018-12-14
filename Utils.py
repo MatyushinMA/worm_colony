@@ -89,7 +89,9 @@ thread_params = { # You can set the params here directly
     'visual_worm_draw_color' : (255, 0, 0),
     'visual_spike_draw_color' : (0, 0, 255),
     'visual_food_draw_color' : (0, 255, 0),
-    'visual_fps' : 5}
+    'visual_fps' : 5,
+    'save_configuration' : False,
+    'load_configuration' : ''}
 
 # DESCRIPTION TABLE
 cmd_params = { # Or you can start Thread.py with parameters from this list, the second string is the description (all flags start with --)
@@ -125,7 +127,9 @@ cmd_params = { # Or you can start Thread.py with parameters from this list, the 
     'visual-height-scale=' : 'Scale of visual height (int)',
     'visual-debug-show' : 'Do debug visual',
     'visual-save-recap' : 'Do save video recap',
-    'visual-fps=' : 'FPS rate in video recap (int)'}
+    'visual-fps=' : 'FPS rate in video recap (int)',
+    'save-configuration' : 'Whether to save worms configuration at the end of emulation',
+    'load-configuration=' : 'Path to binary worms configuration (string)'}
 
 cmd_to_thread = { # INTERNAL USAGE ONLY
     'world-name' : 'world_name',
@@ -160,4 +164,6 @@ cmd_to_thread = { # INTERNAL USAGE ONLY
     'visual-height-scale' : 'visual_height_scale',
     'visual-debug-show' : 'visual_debug_show',
     'visual-save-recap' : 'visual_save_recap',
-    'visual-fps' : 'visual_fps'}
+    'visual-fps' : 'visual_fps',
+    'save-configuration' : 'save_configuration',
+    'load-configuration' : 'load_configuration'}

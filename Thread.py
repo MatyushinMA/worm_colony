@@ -2,6 +2,7 @@ import sys, getopt
 import numpy as np
 import math
 import numpy.random as npr
+import time
 from time import sleep
 
 from Food import *
@@ -404,6 +405,12 @@ class Thread:
                 sleep(RENDER_DELAY*(10**(-3)))
         self.visual.clear()
 
+    def load(self):
+        self.colony.load(self.params['load_configuration'])
+
+    def save(self):
+        self.colony.serialize('./configurations/%s-%s.bin' % (self.params['world_name'], str(time.time())))
+
     def generate(self):
         self._generate_init_worms()
         self._generate_init_spikes()
@@ -433,7 +440,11 @@ class Thread:
         self.visual.show_params(hparams)
 
     def start(self):
+        if self.params['load_configuration']:
+            self.load()
         self._run()
+        if self.params['save_configuration']:
+            self.save()
 
 
 if __name__ == "__main__":
@@ -441,11 +452,14 @@ if __name__ == "__main__":
     for key, value in opts:
         if key[2:] in cmd_to_thread.keys():
             param_name = cmd_to_thread[key[2:]]
-            if param_name == 'world_name':
+            if param_name == 'world_name' or param_name == 'load_configuration':
                 thread_params[param_name] = value
                 print('-< %s has been set to %s\n' % (cmd_params[key[2:] + "="], str(value)))
             elif value:
-                thread_params[param_name] = int(value)
+                if value.split('.')[0] != value:
+                    thread_params[param_name] = float(value)
+                else:
+                    thread_params[param_name] = int(value)
                 print('-< %s has been set to %s\n' % (cmd_params[key[2:] + "="], str(value)))
             else:
                 thread_params[param_name] = True

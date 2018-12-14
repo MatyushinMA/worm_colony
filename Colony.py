@@ -1,6 +1,7 @@
 from Worm import Worm
 from Utils import ORIENTATIONS, WORM_LENGTH
 
+import torch
 import umsgpack
 
 class Colony:
@@ -150,6 +151,8 @@ class Colony:
             serialized_weights = umsgpack.unpack(f)
         for worm_weights in serialized_weights:
             worm_position = worm_weights.pop('_position')
+            for weight_name in worm_weights:
+                worm_weights[weight_name] = torch.Tensor(worm_weights[weight_name])
             self.emplace_worm(worm_position[0], worm_position[1], worm_position[2], worm_weights)
 
     def serialize(self, path):
@@ -158,7 +161,7 @@ class Colony:
             sd = w.get_state_dict()
             worm_weights = {'_position' : w.get_position()}
             for k in sd:
-                weight = sd[k].numpy()
+                weight = sd[k].detach().numpy().tolist()
                 worm_weights[k] = weight
             all_weights.append(worm_weights)
         with open(path, 'wb') as f:
