@@ -65,7 +65,6 @@ class Thread:
             self.environment.emplace_food(x, y)
 
     def _tick(self):
-        print('TIME: %d' % self.params['tick'])
         self.params['tick'] += 1
         self.environment.tick()
         self.colony.tick()
@@ -86,6 +85,7 @@ class Thread:
             'spikes_spawned' : 0,
             'loss' : 0.
         }
+        print('TIME: %d\nPOPULATION: %d\n%s' % (self.params['tick'], self.params['population'], '-'*80))
 
     def _is_alive(self):
         if len(self.colony) == 0:
