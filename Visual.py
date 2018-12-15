@@ -275,12 +275,13 @@ class Visual:
             prev_value = self.long_stats[name][0]
             prev_horizontal = 0
             for new_horizontal, new_value in enumerate(self.long_stats[name]):
+                new_draw_value = prev_value*0.7 + new_value*0.3
                 x1 = int(offset + prev_horizontal*block_width)
                 x2 = int(offset + new_horizontal*block_width)
                 y1 = int(frame['y2'] - bottom_offset - (float(prev_value)/top)*block_height)
-                y2 = int(frame['y2'] - bottom_offset - (float(new_value)/top)*block_height)
+                y2 = int(frame['y2'] - bottom_offset - (float(new_draw_value)/top)*block_height)
                 cv2.line(self.graphs_frame, (x1, y1), (x2, y2), draw_color, 2)
-                prev_value = new_value
+                prev_value = new_draw_value
                 prev_horizontal = new_horizontal
 
     def clear(self):
