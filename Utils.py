@@ -36,7 +36,7 @@ INITIAL_LR = 0.01 #       <   Initial learning rate, try different values
 LEARN_BATCH_SIZE = 10 #   <   We learn on random batch from worm memory, this is max batch size
 HEALTH_COEF = 0.5 #       <   REWARD FORMULA IS:
 SATURATION_COEF = 0.5 #   <   reward = HEALTH_COEF*delta_health + SATURATION_COEF*delta_saturation + BREEDING_COEF*int(self.bred)
-BREEDING_COEF = 0.5 #     <
+BREEDING_COEF = 5. #     <
 AGE_ACTIVITY = 10 #       <-- lr = (INITIAL_LR  - reward/float(100))*float(AGE_ACTIVITY)/((1 + (self.time**2))*global_tick)
 
 # HYPERPARAMETERS
